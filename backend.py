@@ -1,11 +1,10 @@
 #! /usr/bin/env python3
 from flask import Flask, g
-from flask_restful import Resource, Api, reqparse, abort, request
 from flask_sqlalchemy import SQLAlchemy
-from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from flask_httpauth import HTTPBasicAuth
-from functools import wraps
-import random
+from models import User, Session
+from flask_restful import Resource, Api, reqparse
+from helper import authenticate, generate_session_key
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "oibi9Fi2da5hahkoonoo"
@@ -21,30 +20,6 @@ db = SQLAlchemy(app)
 # HTTPAuth
 auth = HTTPBasicAuth()
 
-def authenticate(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        session_key = request.headers.get("Authorization", None)
-        if session_key:
-            print("Got auth header")
-            session = Session.query.filter_by(session_key=session_key).one()
-            if session:
-                print("Found valid session for this key")
-                return func(*args, **kwargs)
-            else:
-                print("can't find a valid session for this key")
-                abort(401)
-        else:
-            print("No auth header")
-            abort(401)
-    return wrapper
-
-def generate_session_key():
-    # Code stolen from Django Project
-    allowed_chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
-    length = 50
-    return ''.join(random.choice(allowed_chars) for i in range(length))
-
 
 @auth.verify_password
 def verify_password(token, nope):
@@ -53,33 +28,6 @@ def verify_password(token, nope):
         return False
     g.user = user
     return True
-
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    sessions = db.relationship('Session', backref='user', lazy=True)
-
-    def generate_login_token(self, expiration = 600):
-        s = Serializer(app.config['SECRET_KEY'], expires_in = expiration)
-        return s.dumps({ 'id': self.id})
-
-    @staticmethod
-    def verify_login_token(token):
-        s = Serializer(app.config['SECRET_KEY'])
-        try:
-            data = s.loads(token)
-        except SignatureExpired:
-            return None # valid token, but expired
-        except BadSignature:
-            return None # invalid token
-        user = User.query.get(data['id'])
-        return user
-
-
-class Session(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    session_key = db.Column(db.String(120), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
 
 user_post_parser = reqparse.RequestParser()
@@ -115,6 +63,7 @@ class LoginResource(Resource):
             token = user.generate_login_token().decode()
             print(token)
             return token
+
 
 class SessionResource(Resource):
     def get(self, login_token):
