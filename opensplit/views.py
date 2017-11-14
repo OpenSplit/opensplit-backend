@@ -1,13 +1,7 @@
 #! /usr/bin/env python3
-from flask import Flask, g
 from flask_sqlalchemy import SQLAlchemy
-from flask_httpauth import HTTPBasicAuth
-from models import User, Session
 from flask_restful import Resource, Api, reqparse
-from helper import authenticate, generate_session_key
-
-app = Flask(__name__)
-app.config['SECRET_KEY'] = "oibi9Fi2da5hahkoonoo"
+from opensplit import app
 
 # Flask-RESTful
 api = Api(app)
@@ -16,19 +10,6 @@ api = Api(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
-
-# HTTPAuth
-auth = HTTPBasicAuth()
-
-
-@auth.verify_password
-def verify_password(token, nope):
-    user = User.verify_auth_token(token)
-    if not user:
-        return False
-    g.user = user
-    return True
-
 
 user_post_parser = reqparse.RequestParser()
 user_post_parser.add_argument('email')
@@ -86,6 +67,3 @@ api.add_resource(UserResource, '/user', '/users/<int:user_id>')
 api.add_resource(LoginResource, '/login/<int:user_id>')
 api.add_resource(SessionResource, '/session/<string:login_token>')
 
-
-if __name__ == '__main__':
-    app.run(debug=True)

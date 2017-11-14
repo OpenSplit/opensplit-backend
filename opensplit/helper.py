@@ -2,7 +2,7 @@
 from functools import wraps
 import random
 from flask_restful import abort, request
-from models import Session
+from opensplit.models import Session
 
 
 def authenticate(func):

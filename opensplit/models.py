@@ -1,5 +1,5 @@
 #! /usr/bin/env python3
-from backend import db, app
+from opensplit import db, app
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous import SignatureExpired, BadSignature
 
