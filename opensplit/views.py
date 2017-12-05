@@ -18,7 +18,7 @@ user_post_parser.add_argument('email')
 
 
 class UserResource(Resource):
-    method_decorators = [authenticate]
+    #method_decorators = [authenticate]
 
     def get(self):
         user = User.query.all()
