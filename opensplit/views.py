@@ -2,6 +2,8 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Resource, Api, reqparse
 from opensplit import app
+from opensplit.models import User, Session
+from opensplit.helper import authenticate, generate_session_key
 
 # Flask-RESTful
 api = Api(app)
