@@ -10,6 +10,7 @@ name = "pypi"
 flask-restful = "*"
 flask-sqlalchemy = "*"
 flask-httpauth = "*"
+flask-cors = "*"
 
 
 [dev-packages]

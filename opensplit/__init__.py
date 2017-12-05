@@ -2,12 +2,12 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Resource, Api, reqparse
-from flask_restful.utils import cors
+from flask_cors import CORS
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "oibi9Fi2da5hahkoonoo"
 
-app.decorators=[cors.crossdomain(origin='*')]
+CORS(app)
 
 # Flask-RESTful
 api = Api(app)
