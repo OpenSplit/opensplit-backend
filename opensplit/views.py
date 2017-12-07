@@ -1,28 +1,20 @@
 #! /usr/bin/env python3
-from flask_sqlalchemy import SQLAlchemy
-from flask_restful import Resource, Api, reqparse
-from opensplit import app
+from flask_restful import Resource, reqparse, abort
+from opensplit import api, db
+from flask import g
 from opensplit.models import User, Session
 from opensplit.helper import authenticate, generate_session_key
-
-# Flask-RESTful
-api = Api(app)
-
-# SQLAlchemy
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
 
 user_post_parser = reqparse.RequestParser()
 user_post_parser.add_argument('email')
 
 
 class UserResource(Resource):
-    #method_decorators = [authenticate]
 
+    @authenticate
     def get(self):
-        user = User.query.all()
-        return {"user": [u.id for u in user]}
+        return {"id": g.user.id,
+                "email": g.user.email}
 
     def post(self):
         args = user_post_parser.parse_args()
@@ -44,8 +36,13 @@ class LoginResource(Resource):
         user = User.query.get(user_id)
         if user:
             token = user.generate_login_token().decode()
-            print(token)
-            return token
+            print("#"*10)
+            print("> Generated new logintoken for '{}'".format(user.email))
+            print("> {}".format(token))
+            print("#"*10)
+            return {"userid": user.id}
+        else:
+            abort(500)
 
 
 class SessionResource(Resource):
@@ -60,12 +57,11 @@ class SessionResource(Resource):
             s = Session(user=user, session_key=session_key)
             db.session.add(s)
             db.session.commit()
-            return session_key
+            return {"session_key": session_key}
         else:
-            return "invalid token"
+            abort(500)
 
 
-api.add_resource(UserResource, '/user', '/users/<int:user_id>')
+api.add_resource(UserResource, '/user')
 api.add_resource(LoginResource, '/login/<int:user_id>')
 api.add_resource(SessionResource, '/session/<string:login_token>')
-

@@ -2,7 +2,8 @@
 from functools import wraps
 import random
 from flask_restful import abort, request
-from opensplit.models import Session
+from opensplit.models import Session, User
+from flask import g
 
 
 def authenticate(func):
@@ -14,6 +15,7 @@ def authenticate(func):
             session = Session.query.filter_by(session_key=session_key).one()
             if session:
                 print("Found valid session for this key")
+                g.user = User.query.filter_by(id=session.user_id).one()
                 return func(*args, **kwargs)
             else:
                 print("can't find a valid session for this key")
