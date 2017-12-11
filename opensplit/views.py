@@ -29,11 +29,11 @@ login_parser.add_argument('userid')
 
 
 class LoginResource(Resource):
-    def get(self, user_id):
+    def get(self, email):
         """
         Generate a new login token
         """
-        user = User.query.get(user_id)
+        user = User.query.filter_by(email=email).first()
         if user:
             token = user.generate_login_token().decode()
             print("#"*10)
@@ -63,5 +63,5 @@ class SessionResource(Resource):
 
 
 api.add_resource(UserResource, '/user')
-api.add_resource(LoginResource, '/login/<int:user_id>')
+api.add_resource(LoginResource, '/login/<string:email>')
 api.add_resource(SessionResource, '/session/<string:login_token>')
