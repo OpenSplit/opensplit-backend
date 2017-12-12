@@ -18,6 +18,7 @@ class User(Base):
     __tablename__ = 'user'
     id = Column(Integer, primary_key=True)
     email = Column(String(120), unique=True, nullable=False)
+    name = Column(String(30), unique=True, nullable=False)
     sessions = relationship('Session', backref='user', lazy=True)
     groups = relationship(
         "Group",

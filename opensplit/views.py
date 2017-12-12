@@ -17,10 +17,10 @@ class UserResource(Resource):
 
     def post(self):
         args = user_post_parser.parse_args()
-        u = User(email=args["email"])
+        u = User(email=args["email"], name=args["name"])
         db.session.add(u)
         db.session.commit()
-        return {"userid": u.id}
+        return "success"
 
 
 login_parser = reqparse.RequestParser()
@@ -39,7 +39,7 @@ class LoginResource(Resource):
             print("> Generated new logintoken for '{}'".format(user.email))
             print("> {}".format(token))
             print("#"*10)
-            return {"userid": user.id}
+            return "success"
         else:
             abort(500)
 
@@ -81,7 +81,7 @@ class GroupResource(Resource):
         g = Group(name=args["name"], owner=g.id)
         db.session.add(g)
         db.session.commit()
-        return {"group_id": g.id}
+        return "success"
 
 
 class UserGroupResource(Resource):
@@ -112,7 +112,7 @@ class UserGroupResource(Resource):
         group.member.remove(g.user)
         db.session.add(group)
         db.session.commit()
-        return {"status": "success"}
+        return "success"
 
 
 api.add_resource(UserResource, '/user')
