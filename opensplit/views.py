@@ -16,6 +16,7 @@ class UserResource(Resource):
     def get(self):
         return {"id": g.user.id,
                 "name": g.user.name,
+                "groups": [grp.name for grp in g.user.groups],
                 "email": g.user.email}
 
     def post(self):
@@ -23,7 +24,7 @@ class UserResource(Resource):
         u = User(email=args["email"], name=args["name"])
         db_session.add(u)
         db_session.commit()
-        return "success"
+        return {"message":"success"}
 
 
 login_parser = reqparse.RequestParser()
@@ -42,7 +43,7 @@ class LoginResource(Resource):
             print("> Generated new logintoken for '{}'".format(user.email))
             print("> {}".format(token))
             print("#"*10)
-            return "success"
+            return {"message":"success"}
         else:
             abort(500)
 
@@ -69,33 +70,37 @@ group_post_parser.add_argument('name')
 
 
 class GroupResource(Resource):
+    method_decorators = [authenticate]
     def get(self):
         """
         Get list of groups
         """
         groups = Group.query.all()
-        return groups
+        return [{"name": grp.name, "id": grp.id, "owner": grp.owner} for grp in groups]
 
     def post(self):
         """
         Create new group
         """
         args = group_post_parser.parse_args()
-        g = Group(name=args["name"], owner=g.id)
-        db_session.add(g)
+        group = Group(name=args["name"], owner=g.user.id)
+        db_session.add(group)
         db_session.commit()
-        return "success"
+        return {"message":"success"}
 
 
 class UserGroupResource(Resource):
+    method_decorators = [authenticate]
     def post(self, group_id):
         """
         Join group
         """
-        group = Group.query.filter_by(id=group_id).one()
+        group = Group.query.filter_by(id=group_id).first()
         if not group:
             abort(500, message="No group with this ID")
         else:
+            if g.user in group.member:
+                abort(500, message="Allready member of this group")
             group.member.append(g.user)
             db_session.add(group)
             db_session.commit()
@@ -105,7 +110,7 @@ class UserGroupResource(Resource):
         """
         Leave group
         """
-        group = Group.query.filter_by(id=group_id).one()
+        group = Group.query.filter_by(id=group_id).first()
         if not group:
             abort(500, message="No group with this ID")
 

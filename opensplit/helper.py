@@ -11,10 +11,8 @@ def authenticate(func):
     def wrapper(*args, **kwargs):
         session_key = request.headers.get("Authorization", None)
         if session_key:
-            print("Got auth header")
             session = Session.query.filter_by(session_key=session_key).first()
             if session:
-                print("Found valid session for this key")
                 g.user = User.query.filter_by(id=session.user_id).one()
                 return func(*args, **kwargs)
             else:
