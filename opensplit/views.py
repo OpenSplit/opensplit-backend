@@ -2,7 +2,7 @@
 from flask_restful import Resource, reqparse, abort
 from opensplit import api, db
 from flask import g
-from opensplit.models import User, Session
+from opensplit.models import User, Session, Group
 from opensplit.helper import authenticate, generate_session_key
 
 user_post_parser = reqparse.RequestParser()
@@ -10,7 +10,6 @@ user_post_parser.add_argument('email')
 
 
 class UserResource(Resource):
-
     @authenticate
     def get(self):
         return {"id": g.user.id,
@@ -62,6 +61,62 @@ class SessionResource(Resource):
             abort(500)
 
 
+group_post_parser = reqparse.RequestParser()
+group_post_parser.add_argument('name')
+
+
+class GroupResource(Resource):
+    def get(self):
+        """
+        Get list of groups
+        """
+        groups = Group.query.all()
+        return groups
+
+    def post(self):
+        """
+        Create new group
+        """
+        args = group_post_parser.parse_args()
+        g = Group(name=args["name"], owner=g.id)
+        db.session.add(g)
+        db.session.commit()
+        return {"group_id": g.id}
+
+
+class UserGroupResource(Resource):
+    def post(self, group_id):
+        """
+        Join group
+        """
+        group = Group.query.filter_by(id=group_id).one()
+        if not group:
+            abort(500, message="No group with this ID")
+        else:
+            group.member.append(g.user)
+            db.session.add(group)
+            db.session.commit()
+            return {"status": "success"}
+
+    def delete(self, group_id):
+        """
+        Leave group
+        """
+        group = Group.query.filter_by(id=group_id).one()
+        if not group:
+            abort(500, message="No group with this ID")
+
+        if g.user not in group.member:
+            abort(500, message="Not a group member")
+
+        group.member.remove(g.user)
+        db.session.add(group)
+        db.session.commit()
+        return {"status": "success"}
+
+
 api.add_resource(UserResource, '/user')
 api.add_resource(LoginResource, '/login/<string:email>')
+api.add_resource(GroupResource, '/group')
+api.add_resource(UserGroupResource, '/group/<int:group_id>')
 api.add_resource(SessionResource, '/session/<string:login_token>')
