@@ -5,8 +5,7 @@ from sqlalchemy.orm import relationship
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous import SignatureExpired, BadSignature
 from sqlalchemy.ext.declarative import declarative_base
-
-Base = declarative_base()
+from opensplit.database import Base
 
 association_table = Table('association', Base.metadata,
         Column('user_id', Integer, ForeignKey('user.id')),

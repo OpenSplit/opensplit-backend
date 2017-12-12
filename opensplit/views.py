@@ -1,25 +1,28 @@
 #! /usr/bin/env python3
 from flask_restful import Resource, reqparse, abort
-from opensplit import api, db
+from opensplit import api
+from opensplit.database import db_session
 from flask import g
 from opensplit.models import User, Session, Group
 from opensplit.helper import authenticate, generate_session_key
 
 user_post_parser = reqparse.RequestParser()
 user_post_parser.add_argument('email')
+user_post_parser.add_argument('name')
 
 
 class UserResource(Resource):
     @authenticate
     def get(self):
         return {"id": g.user.id,
+                "name": g.user.name,
                 "email": g.user.email}
 
     def post(self):
         args = user_post_parser.parse_args()
         u = User(email=args["email"], name=args["name"])
-        db.session.add(u)
-        db.session.commit()
+        db_session.add(u)
+        db_session.commit()
         return "success"
 
 
@@ -54,8 +57,8 @@ class SessionResource(Resource):
             # return "valid token for userid {}".format(user.id)
             session_key = generate_session_key()
             s = Session(user=user, session_key=session_key)
-            db.session.add(s)
-            db.session.commit()
+            db_session.add(s)
+            db_session.commit()
             return {"session_key": session_key}
         else:
             abort(500)
@@ -79,8 +82,8 @@ class GroupResource(Resource):
         """
         args = group_post_parser.parse_args()
         g = Group(name=args["name"], owner=g.id)
-        db.session.add(g)
-        db.session.commit()
+        db_session.add(g)
+        db_session.commit()
         return "success"
 
 
@@ -94,8 +97,8 @@ class UserGroupResource(Resource):
             abort(500, message="No group with this ID")
         else:
             group.member.append(g.user)
-            db.session.add(group)
-            db.session.commit()
+            db_session.add(group)
+            db_session.commit()
             return {"status": "success"}
 
     def delete(self, group_id):
@@ -110,8 +113,8 @@ class UserGroupResource(Resource):
             abort(500, message="Not a group member")
 
         group.member.remove(g.user)
-        db.session.add(group)
-        db.session.commit()
+        db_session.add(group)
+        db_session.commit()
         return "success"
 
 
