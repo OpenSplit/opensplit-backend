@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
-from opensplit.database import init_db
+from opensplit import db
 
-init_db()
+db.create_all()
 print("Done")
 

@@ -1,7 +1,6 @@
 #! /usr/bin/env python3
 from flask_restful import Resource, reqparse, abort
-from opensplit import api
-from opensplit.database import db_session
+from opensplit import api, db
 from flask import g
 from opensplit.models import User, Session, Group
 from opensplit.helper import authenticate, generate_session_key
@@ -22,8 +21,8 @@ class UserResource(Resource):
     def post(self):
         args = user_post_parser.parse_args()
         u = User(email=args["email"], name=args["name"])
-        db_session.add(u)
-        db_session.commit()
+        db.session.add(u)
+        db.session.commit()
         return {"message":"success"}
 
 
@@ -58,8 +57,8 @@ class SessionResource(Resource):
             # return "valid token for userid {}".format(user.id)
             session_key = generate_session_key()
             s = Session(user=user, session_key=session_key)
-            db_session.add(s)
-            db_session.commit()
+            db.session.add(s)
+            db.session.commit()
             return {"session_key": session_key}
         else:
             abort(500)
@@ -84,8 +83,8 @@ class GroupResource(Resource):
         """
         args = group_post_parser.parse_args()
         group = Group(name=args["name"], owner=g.user.id)
-        db_session.add(group)
-        db_session.commit()
+        db.session.add(group)
+        db.session.commit()
         return {"message":"success"}
 
 
@@ -102,8 +101,8 @@ class UserGroupResource(Resource):
             if g.user in group.member:
                 abort(500, message="Allready member of this group")
             group.member.append(g.user)
-            db_session.add(group)
-            db_session.commit()
+            db.session.add(group)
+            db.session.commit()
             return {"status": "success"}
 
     def delete(self, group_id):
@@ -118,8 +117,8 @@ class UserGroupResource(Resource):
             abort(500, message="Not a group member")
 
         group.member.remove(g.user)
-        db_session.add(group)
-        db_session.commit()
+        db.session.add(group)
+        db.session.commit()
         return "success"
 
 

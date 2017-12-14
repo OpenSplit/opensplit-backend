@@ -1,19 +1,17 @@
 #! /usr/bin/env python3
-from opensplit import app
+from opensplit import app, db
 from sqlalchemy import Table, Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous import SignatureExpired, BadSignature
-from sqlalchemy.ext.declarative import declarative_base
-from opensplit.database import Base
 
-association_table = Table('association', Base.metadata,
+association_table = Table('association', db.Model.metadata,
         Column('user_id', Integer, ForeignKey('user.id')),
         Column('group_id', Integer, ForeignKey('group.id'))
         )
 
 
-class User(Base):
+class User(db.Model):
     __tablename__ = 'user'
     id = Column(Integer, primary_key=True)
     email = Column(String(120), unique=True, nullable=False)
@@ -43,14 +41,14 @@ class User(Base):
         return user
 
 
-class Session(Base):
+class Session(db.Model):
     __tablename__ = 'session'
     id = Column(Integer, primary_key=True)
     session_key = Column(String(120), nullable=False)
     user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
 
 
-class Group(Base):
+class Group(db.Model):
     __tablename__ = 'group'
     id = Column(Integer, primary_key=True)
     name = Column(String(120), unique=True, nullable=False)
