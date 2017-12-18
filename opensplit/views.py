@@ -90,11 +90,11 @@ class GroupResource(Resource):
 
 class UserGroupResource(Resource):
     method_decorators = [authenticate]
-    def post(self, group_id):
+    def post(self, name):
         """
         Join group
         """
-        group = Group.query.filter_by(id=group_id).first()
+        group = Group.query.filter_by(name=name).first()
         if not group:
             abort(500, message="No group with this ID")
         else:
@@ -125,5 +125,5 @@ class UserGroupResource(Resource):
 api.add_resource(UserResource, '/user')
 api.add_resource(LoginResource, '/login/<string:email>')
 api.add_resource(GroupResource, '/group')
-api.add_resource(UserGroupResource, '/group/<int:group_id>')
+api.add_resource(UserGroupResource, '/group/<string:name>')
 api.add_resource(SessionResource, '/session/<string:login_token>')
