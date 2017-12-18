@@ -51,7 +51,7 @@ class Session(db.Model):
 class Group(db.Model):
     __tablename__ = 'group'
     id = Column(Integer, primary_key=True)
-    name = Column(String(120), unique=True, nullable=False)
+    name = Column(String(120), nullable=False)
     owner = Column(Integer, ForeignKey('user.id'), nullable=False)
     member = relationship(
         "User",
