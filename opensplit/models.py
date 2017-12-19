@@ -1,14 +1,20 @@
 #! /usr/bin/env python3
 from opensplit import app, db
-from sqlalchemy import Table, Column, Integer, String, ForeignKey
+from sqlalchemy import Table, Column, Integer, String, ForeignKey, Numeric
 from sqlalchemy.orm import relationship
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous import SignatureExpired, BadSignature
 
-association_table = Table('association', db.Model.metadata,
-        Column('user_id', Integer, ForeignKey('user.id')),
-        Column('group_id', Integer, ForeignKey('group.id'))
-        )
+group_assoc = Table('group_assoc', db.Model.metadata,
+                    Column('user_id', Integer, ForeignKey('user.id')),
+                    Column('group_id', Integer, ForeignKey('group.id'))
+                    )
+
+expense_assoc = Table('expense_assoc', db.Model.metadata,
+                      Column('user_id', Integer, ForeignKey('user.id')),
+                      Column('share', Numeric(10, 2)),
+                      Column('expense_id', Integer, ForeignKey('expense.id'))
+                      )
 
 
 class User(db.Model):
@@ -17,9 +23,13 @@ class User(db.Model):
     email = Column(String(120), unique=True, nullable=False)
     name = Column(String(30), unique=True, nullable=False)
     sessions = relationship('Session', backref='user', lazy=True)
+    expenses = relationship(
+        "Expense",
+        secondary=expense_assoc,
+        back_populates="split_amongst")
     groups = relationship(
         "Group",
-        secondary=association_table,
+        secondary=group_assoc,
         back_populates="member")
 
     def generate_login_token(self, expiration=600):
@@ -53,7 +63,22 @@ class Group(db.Model):
     id = Column(Integer, primary_key=True)
     name = Column(String(120), nullable=False)
     owner = Column(Integer, ForeignKey('user.id'), nullable=False)
+    expenses = relationship('Expense', backref='group', lazy=True)
     member = relationship(
         "User",
-        secondary=association_table,
+        secondary=group_assoc,
         back_populates="groups")
+
+
+class Expense(db.Model):
+    __tablename__ = 'expense'
+    id = Column(Integer, primary_key=True)
+    description = Column(String(120), unique=True, nullable=False)
+    amount = Column(Numeric(10, 2), nullable=False)
+    group_id = Column(Integer, ForeignKey('group.id'), nullable=False)
+    paid_by = Column(Integer, ForeignKey('user.id'), nullable=False)
+    split_amongst = relationship(
+        "User",
+        secondary=expense_assoc,
+        back_populates="expenses")
+
