@@ -83,6 +83,7 @@ class GroupResource(Resource):
         """
         args = group_post_parser.parse_args()
         group = Group(name=args["name"], owner=g.user.id)
+        group.member.append(g.user)
         db.session.add(group)
         db.session.commit()
         return {"message":"success"}
