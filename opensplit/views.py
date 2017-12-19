@@ -15,7 +15,7 @@ class UserResource(Resource):
     def get(self):
         return {"id": g.user.id,
                 "name": g.user.name,
-                "groups": [grp.name for grp in g.user.groups],
+                "groups": [{"name": grp.name,"id": grp.id} for grp in g.user.groups],
                 "email": g.user.email}
 
     def post(self):
@@ -32,7 +32,7 @@ class SpecialUserResource(Resource):
         if user:
             return {"id": user.id,
                     "name": user.name,
-                    "groups": [grp.name for grp in user.groups],
+                    "groups": [{"name": grp.name,"id": grp.id} for grp in user.groups],
                     "email": user.email}
         else:
             abort(500, message="No user with this ID")
