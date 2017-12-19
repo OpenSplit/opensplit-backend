@@ -116,7 +116,7 @@ class UserGroupResource(Resource):
                 abort(500, message="Not a member of this group")
             return {"name": group.name,
                     "id": group.id,
-                    "member": [u.id for u in group.member],
+                    "member": [{"id":u.id, "name":u.name} for u in group.member],
                     "expenses": [e.id for e in group.expenses]}
 
 
