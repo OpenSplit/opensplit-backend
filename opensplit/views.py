@@ -25,6 +25,18 @@ class UserResource(Resource):
         db.session.commit()
         return {"message":"success"}
 
+class SpecialUserResource(Resource):
+    @authenticate
+    def get(self, user_id):
+        user = User.query.get(user_id)
+        if user:
+            return {"id": user.id,
+                    "name": user.name,
+                    "groups": [grp.name for grp in user.groups],
+                    "email": user.email}
+        else:
+            abort(500, message="No user with this ID")
+
 
 login_parser = reqparse.RequestParser()
 login_parser.add_argument('userid')
@@ -91,6 +103,23 @@ class GroupResource(Resource):
 
 class UserGroupResource(Resource):
     method_decorators = [authenticate]
+
+    def get(self, group_id):
+        """
+        Get information about a specific group
+        """
+        group = Group.query.filter_by(id=group_id).first()
+        if not group:
+            abort(500, message="No group with this ID")
+        else:
+            if g.user not in group.member:
+                abort(500, message="Not a member of this group")
+            return {"name": group.name,
+                    "id": group.id,
+                    "member": [u.id for u in group.member],
+                    "expenses": [e.id for e in group.expenses]}
+
+
     def post(self, group_id):
         """
         Join group
@@ -124,6 +153,7 @@ class UserGroupResource(Resource):
 
 
 api.add_resource(UserResource, '/user')
+api.add_resource(SpecialUserResource, '/user/<int:user_id>')
 api.add_resource(LoginResource, '/login/<string:email>')
 api.add_resource(GroupResource, '/group')
 api.add_resource(UserGroupResource, '/group/<int:group_id>')
