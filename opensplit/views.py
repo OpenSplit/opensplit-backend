@@ -2,8 +2,9 @@
 from flask_restful import Resource, reqparse, abort
 from opensplit import api, db
 from flask import g
-from opensplit.models import User, Session, Group
+from opensplit.models import User, Session, Group, Expense
 from opensplit.helper import authenticate, generate_session_key
+from sqlalchemy.exc import IntegrityError
 
 user_post_parser = reqparse.RequestParser()
 user_post_parser.add_argument('email')
@@ -20,7 +21,7 @@ class UserResource(Resource):
 
     def post(self):
         args = user_post_parser.parse_args()
-        u = User(email=args["email"], name=args["name"])
+        u = user(email=args["email"], name=args["name"])
         db.session.add(u)
         db.session.commit()
         return {"message":"success"}
@@ -152,9 +153,37 @@ class UserGroupResource(Resource):
         return "success"
 
 
+expense_post_parser = reqparse.RequestParser()
+expense_post_parser.add_argument('description')
+expense_post_parser.add_argument('amount')
+expense_post_parser.add_argument('group_id')
+expense_post_parser.add_argument('paid_by')
+expense_post_parser.add_argument('split_amongst', action='append')
+
+
+class ExpenseResource(Resource):
+    method_decorators = [authenticate]
+
+
+    def post(self):
+        """
+        Add expenses
+        """
+        args = expense_post_parser.parse_args()
+        e = Expense(description=args["description"], amount=args["amount"],
+                    group_id=args["group_id"], paid_by=args["paid_by"])
+        print(args)
+        print(args["split_amongst"])
+        for user_id in args["split_amongst"]:
+            e.split_amongst.append(User.query.filter_by(id=user_id).first())
+        db.session.add(e)
+        db.session.commit()
+
+
 api.add_resource(UserResource, '/user')
 api.add_resource(SpecialUserResource, '/user/<int:user_id>')
 api.add_resource(LoginResource, '/login/<string:email>')
 api.add_resource(GroupResource, '/group')
 api.add_resource(UserGroupResource, '/group/<int:group_id>')
 api.add_resource(SessionResource, '/session/<string:login_token>')
+api.add_resource(ExpenseResource, '/expense')
