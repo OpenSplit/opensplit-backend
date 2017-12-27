@@ -73,7 +73,7 @@ class Group(db.Model):
 class Expense(db.Model):
     __tablename__ = 'expense'
     id = Column(Integer, primary_key=True)
-    description = Column(String(120), unique=True, nullable=False)
+    description = Column(String(120), nullable=False)
     amount = Column(Numeric(10, 2), nullable=False)
     group_id = Column(Integer, ForeignKey('group.id'), nullable=False)
     paid_by = Column(Integer, ForeignKey('user.id'), nullable=False)
