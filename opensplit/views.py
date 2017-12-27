@@ -118,7 +118,7 @@ class UserGroupResource(Resource):
             return {"name": group.name,
                     "id": group.id,
                     "member": [{"id":u.id, "name":u.name} for u in group.member],
-                    "expenses": [e.id for e in group.expenses]}
+                    "expenses": [{"amount": float(e.amount), "description": e.description} for e in group.expenses]}
 
 
     def post(self, group_id):
@@ -167,7 +167,7 @@ class ExpenseResource(Resource):
 
     def post(self):
         """
-        Add expenses
+        Add expense
         """
         args = expense_post_parser.parse_args()
         e = Expense(description=args["description"], amount=args["amount"],
