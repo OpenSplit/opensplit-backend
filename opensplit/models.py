@@ -36,6 +36,11 @@ class User(db.Model):
         s = Serializer(app.config['SECRET_KEY'], expires_in=expiration)
         return s.dumps({'id': self.id})
 
+    def jsonify(self):
+        return {"id": self.id,
+                "name": self.name,
+                "email": self.email}
+
     @staticmethod
     def verify_login_token(token):
         s = Serializer(app.config['SECRET_KEY'])
@@ -69,6 +74,13 @@ class Group(db.Model):
         secondary=group_assoc,
         back_populates="groups")
 
+    def jsonify(self):
+        return {"id": self.id,
+                "name": self.name,
+                "owner": self.owner,
+                "expenses": [e.jsonify() for e in self.expenses],
+                "member": [u.jsonify() for u in self.member]}
+
 
 class Expense(db.Model):
     __tablename__ = 'expense'
@@ -81,4 +93,12 @@ class Expense(db.Model):
         "User",
         secondary=expense_assoc,
         back_populates="expenses")
+
+    def jsonify(self):
+        return {"id": self.id,
+                "description": self.description,
+                "amount": float(self.amount),
+                "group_id": self.group_id,
+                "paid_by": self.paid_by,
+                "split_amongst": [u.jsonify() for u in self.split_amongst]}
 

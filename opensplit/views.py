@@ -16,7 +16,7 @@ class UserResource(Resource):
     def get(self):
         return {"id": g.user.id,
                 "name": g.user.name,
-                "groups": [{"name": grp.name,"id": grp.id} for grp in g.user.groups],
+                "groups": [grp.jsonify() for grp in g.user.groups],
                 "email": g.user.email}
 
     def post(self):
@@ -33,7 +33,7 @@ class SpecialUserResource(Resource):
         if user:
             return {"id": user.id,
                     "name": user.name,
-                    "groups": [{"name": grp.name,"id": grp.id} for grp in user.groups],
+                    "groups": [grp.jsonify() for grp in user.groups],
                     "email": user.email}
         else:
             abort(500, message="No user with this ID")
@@ -88,7 +88,7 @@ class GroupResource(Resource):
         Get list of groups
         """
         groups = Group.query.all()
-        return [{"name": grp.name, "id": grp.id, "owner": grp.owner} for grp in groups]
+        return [grp.jsonify() for grp in groups]
 
     def post(self):
         """
@@ -117,8 +117,8 @@ class UserGroupResource(Resource):
                 abort(500, message="Not a member of this group")
             return {"name": group.name,
                     "id": group.id,
-                    "member": [{"id":u.id, "name":u.name} for u in group.member],
-                    "expenses": [{"amount": float(e.amount), "description": e.description} for e in group.expenses]}
+                    "member": [u.jsonify() for u in group.member],
+                    "expenses": [e.jsonify() for e in group.expenses]}
 
 
     def post(self, group_id):
