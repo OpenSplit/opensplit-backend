@@ -21,7 +21,7 @@ class UserResource(Resource):
 
     def post(self):
         args = user_post_parser.parse_args()
-        u = user(email=args["email"], name=args["name"])
+        u = User(email=args["email"], name=args["name"])
         db.session.add(u)
         db.session.commit()
         return {"message":"success"}
