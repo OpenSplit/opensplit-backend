@@ -3,8 +3,9 @@ from flask_restful import Resource, reqparse, abort
 from opensplit import api, db
 from flask import g
 from opensplit.models import User, Session, Group, Expense
-from opensplit.helper import authenticate, generate_session_key
+from opensplit.helper import authenticate, generate_session_key, split_amongst
 from sqlalchemy.exc import IntegrityError
+import pprint
 
 user_post_parser = reqparse.RequestParser()
 user_post_parser.add_argument('email')
@@ -175,9 +176,47 @@ class ExpenseResource(Resource):
         print(args)
         print(args["split_amongst"])
         for user_id in args["split_amongst"]:
-            e.split_amongst.append(User.query.filter_by(id=user_id).first())
+            e.split_amongst.append(User.query.get(user_id))
         db.session.add(e)
         db.session.commit()
+
+
+class DebtResource(Resource):
+    #method_decorators = [authenticate]
+
+    def get(self, group_id):
+        group = Group.query.get(group_id)
+        debts = {}
+
+        # Generate debts between users
+        for exp in group.expenses:
+            payer = User.query.get(exp.paid_by)
+            distribution = split_amongst(int(exp.amount*100), [u.name for u in exp.split_amongst])
+
+            print("paid: {} -> shares: {}".format(payer.name,distribution))
+            for user, amount in distribution:
+                if user == payer.name:
+                    continue
+                if not debts.get(user, None):
+                    debts[user] = {}
+
+                debts[user][payer.name] = amount + debts[user].get(payer.name, 0)
+        pprint.pprint(debts)
+
+        # Iterate over debts-dict again to "verrrechner hin und rückschulden" between 2 user
+        for userA, userdebts in debts.items():
+            for userB in userdebts.keys():
+                try:
+                    diff = min(debts[userA][userB], debts[userB][userA])
+                    debts[userA][userB] -= diff
+                    debts[userB][userA] -= diff
+                except KeyError:
+                    continue
+
+
+        return debts
+
+
 
 
 api.add_resource(UserResource, '/user')
@@ -187,3 +226,4 @@ api.add_resource(GroupResource, '/group')
 api.add_resource(UserGroupResource, '/group/<int:group_id>')
 api.add_resource(SessionResource, '/session/<string:login_token>')
 api.add_resource(ExpenseResource, '/expense')
+api.add_resource(DebtResource, '/debt/<int:group_id>')
