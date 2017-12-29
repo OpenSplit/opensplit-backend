@@ -60,7 +60,7 @@ def split_amongst(amount, user):
 
     # Sanity check
     if sum(debts) != amount:
-        print("FUCK")
+        print("WARNING: The money was not distributed correctly!")
         print(amount)
         print(debts)
 
