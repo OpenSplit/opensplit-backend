@@ -116,10 +116,7 @@ class UserGroupResource(Resource):
         else:
             if g.user not in group.member:
                 abort(500, message="Not a member of this group")
-            return {"name": group.name,
-                    "id": group.id,
-                    "member": [u.jsonify() for u in group.member],
-                    "expenses": [e.jsonify() for e in group.expenses]}
+            return group.jsonify()
 
 
     def post(self, group_id):
@@ -165,7 +162,6 @@ expense_post_parser.add_argument('split_amongst', action='append')
 class ExpenseResource(Resource):
     method_decorators = [authenticate]
 
-
     def post(self):
         """
         Add expense
@@ -180,43 +176,15 @@ class ExpenseResource(Resource):
         db.session.add(e)
         db.session.commit()
 
-
-class DebtResource(Resource):
-    #method_decorators = [authenticate]
+class TransactionResource(Resource):
+    method_decorators = [authenticate]
 
     def get(self, group_id):
+        """
+        Return list of transactions
+        """
         group = Group.query.get(group_id)
-        debts = {}
-
-        # Generate debts between users
-        for exp in group.expenses:
-            payer = User.query.get(exp.paid_by)
-            distribution = split_amongst(int(exp.amount*100), [u.name for u in exp.split_amongst])
-
-            print("paid: {} -> shares: {}".format(payer.name,distribution))
-            for user, amount in distribution:
-                if user == payer.name:
-                    continue
-                if not debts.get(user, None):
-                    debts[user] = {}
-
-                debts[user][payer.name] = amount + debts[user].get(payer.name, 0)
-        pprint.pprint(debts)
-
-        # Iterate over debts-dict again to "verrrechner hin und rückschulden" between 2 user
-        for userA, userdebts in debts.items():
-            for userB in userdebts.keys():
-                try:
-                    diff = min(debts[userA][userB], debts[userB][userA])
-                    debts[userA][userB] -= diff
-                    debts[userB][userA] -= diff
-                except KeyError:
-                    continue
-
-
-        return debts
-
-
+        return [e.jsonify() for e in group.expenses],
 
 
 api.add_resource(UserResource, '/user')
@@ -226,4 +194,4 @@ api.add_resource(GroupResource, '/group')
 api.add_resource(UserGroupResource, '/group/<int:group_id>')
 api.add_resource(SessionResource, '/session/<string:login_token>')
 api.add_resource(ExpenseResource, '/expense')
-api.add_resource(DebtResource, '/debt/<int:group_id>')
+api.add_resource(TransactionResource, '/transactions/<int:group_id>')

@@ -2,9 +2,9 @@
 from functools import wraps
 import random
 from flask_restful import abort, request
-from opensplit.models import Session, User
 from flask import g
 from random import shuffle
+from opensplit.models import Session, User, Group
 
 
 def authenticate(func):
@@ -65,3 +65,41 @@ def split_amongst(amount, user):
         print(debts)
 
     return list(zip(user, debts))
+
+
+def calculate_debts(group_id):
+    group = Group.query.get(group_id)
+    debts = {}
+
+    # Generate debts between users
+    for exp in group.expenses:
+        payer = User.query.get(exp.paid_by)
+        distribution = split_amongst(int(exp.amount*100), [u.name for u in exp.split_amongst])
+
+        print("paid: {} -> shares: {}".format(payer.name,distribution))
+        for user, amount in distribution:
+            if user == payer.name:
+                continue
+            if not debts.get(user, None):
+                debts[user] = {}
+
+            debts[user][payer.name] = amount + debts[user].get(payer.name, 0)
+
+    # Iterate over debts-dict again to "verrrechner hin und rückschulden" between 2 user
+    for userA, userdebts in debts.items():
+        for userB in userdebts.keys():
+            try:
+                diff = min(debts[userA][userB], debts[userB][userA])
+                debts[userA][userB] -= diff
+                debts[userB][userA] -= diff
+            except KeyError:
+                continue
+
+    # Change format and remove empty lines
+    debt_triples = []
+    for userA, userdebts in debts.items():
+        for userB, value in userdebts.items():
+            if value > 0:
+                debt_triples.append((userA, userB, value))
+
+    return debt_triples

@@ -78,8 +78,12 @@ class Group(db.Model):
         return {"id": self.id,
                 "name": self.name,
                 "owner": self.owner,
-                "expenses": [e.jsonify() for e in self.expenses],
+                "debts": calculate_debts(self.id),
                 "member": [u.jsonify() for u in self.member]}
+
+
+# I hate circular import dependencies in Python!
+from opensplit.helper import calculate_debts
 
 
 class Expense(db.Model):
