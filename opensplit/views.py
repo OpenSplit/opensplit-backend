@@ -169,8 +169,6 @@ class ExpenseResource(Resource):
         args = expense_post_parser.parse_args()
         e = Expense(description=args["description"], amount=args["amount"],
                     group_id=args["group_id"], paid_by=args["paid_by"])
-        print(args)
-        print(args["split_amongst"])
         for user_id in args["split_amongst"]:
             e.split_amongst.append(User.query.get(user_id))
         db.session.add(e)
