@@ -84,33 +84,12 @@ group_post_parser.add_argument('name')
 
 class GroupResource(Resource):
     method_decorators = [authenticate]
-    def get(self):
-        """
-        Get list of groups
-        """
-        groups = Group.query.all()
-        return [grp.jsonify() for grp in groups]
-
-    def post(self):
-        """
-        Create new group
-        """
-        args = group_post_parser.parse_args()
-        group = Group(name=args["name"], owner=g.user.id)
-        group.member.append(g.user)
-        db.session.add(group)
-        db.session.commit()
-        return {"message":"success"}
-
-
-class UserGroupResource(Resource):
-    method_decorators = [authenticate]
 
     def get(self, group_id):
         """
         Get information about a specific group
         """
-        group = Group.query.filter_by(id=group_id).first()
+        group = models.Group.query.filter_by(id=group_id).first()
         if not group:
             abort(500, message="No group with this ID")
         else:
@@ -118,12 +97,26 @@ class UserGroupResource(Resource):
                 abort(500, message="Not a member of this group")
             return group.jsonify()
 
+    def post(self):
+        """
+        Create new group
+        """
+        args = group_post_parser.parse_args()
+        group = models.Group(name=args["name"], owner=g.user.id)
+        group.member.append(g.user)
+        db.session.add(group)
+        db.session.commit()
+        return {"message": "success"}
 
-    def post(self, group_id):
+
+class UserGroupResource(Resource):
+    method_decorators = [authenticate]
+
+    def post(self, group_token):
         """
         Join group
         """
-        group = Group.query.filter_by(id=group_id).first()
+        group = models.Group.query.filter_by(token=group_token).first()
         if not group:
             abort(500, message="No group with this ID")
         else:
@@ -190,8 +183,8 @@ class TransactionResource(Resource):
 api.add_resource(UserResource, '/user')
 api.add_resource(SpecialUserResource, '/user/<int:user_id>')
 api.add_resource(LoginResource, '/login/<string:email>')
-api.add_resource(GroupResource, '/group')
-api.add_resource(UserGroupResource, '/group/<int:group_id>')
+api.add_resource(GroupResource, '/group', '/group/<int:group_id>')
+api.add_resource(UserGroupResource, '/group/<string:group_token>')
 api.add_resource(SessionResource, '/session/<string:login_token>')
 api.add_resource(ExpenseResource, '/expense')
 api.add_resource(TransactionResource, '/transactions/<int:group_id>')
