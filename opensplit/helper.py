@@ -4,7 +4,7 @@ import random
 from flask_restful import abort, request
 from flask import g
 from random import shuffle
-from opensplit.models import Session, User, Group
+from opensplit import models
 
 
 def authenticate(func):
@@ -15,9 +15,9 @@ def authenticate(func):
     def wrapper(*args, **kwargs):
         session_key = request.headers.get("Authorization", None)
         if session_key:
-            session = Session.query.filter_by(session_key=session_key).first()
+            session = models.Session.query.filter_by(session_key=session_key).first()
             if session:
-                g.user = User.query.filter_by(id=session.user_id).one()
+                g.user = models.User.query.filter_by(id=session.user_id).one()
                 return func(*args, **kwargs)
             else:
                 print("can't find a valid session for this key")
@@ -68,12 +68,12 @@ def split_amongst(amount, user):
 
 
 def calculate_debts(group_id):
-    group = Group.query.get(group_id)
+    group = models.Group.query.get(group_id)
     debts = {}
 
     # Generate debts between users
     for exp in group.expenses:
-        payer = User.query.get(exp.paid_by)
+        payer = models.User.query.get(exp.paid_by)
         distribution = split_amongst(int(exp.amount*100), [u.name for u in exp.split_amongst])
 
         print("paid: {} -> shares: {}".format(payer.name,distribution))
