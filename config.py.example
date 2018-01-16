@@ -1,8 +1,15 @@
 import os
 basedir = os.path.abspath(os.path.dirname(__file__))
 
-SECRET_KEY = "yeKawoowied9pi8eod5a"
+SECRET_KEY = "topsecret"
+
+BASE_URL = "https://app.openspl.it"
 
 # Database
 SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'var/opensplit.db')
 SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+# Email
+SMTP_USER = "no-reply@openspl.it"
+SMTP_HOST = "mail.foobar.com"
+SMTP_PASS = "evenmoresecret"

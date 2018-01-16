@@ -4,7 +4,22 @@ import random
 from flask_restful import abort, request
 from flask import g
 from random import shuffle
-from opensplit import models
+from opensplit import models, app
+from smtplib import SMTP_SSL
+from email.message import EmailMessage
+
+def send_mail(receiver, subject, body):
+    msg = EmailMessage()
+    msg.set_content(body)
+
+    msg['Subject'] = subject
+    msg['From'] = app.config["SMTP_USER"]
+    msg['To'] = receiver
+
+    s = SMTP_SSL(app.config["SMTP_HOST"])
+    s.login(app.config["SMTP_USER"], app.config["SMTP_PASS"])
+    s.send_message(msg)
+    s.quit()
 
 
 def authenticate(func):

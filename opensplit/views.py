@@ -1,9 +1,8 @@
 #! /usr/bin/env python3
 from flask_restful import Resource, reqparse, abort
-from opensplit import api, db
+from opensplit import api, db, app, models
 from flask import g
-from opensplit import models
-from opensplit.helper import authenticate, generate_session_key, split_amongst
+from opensplit.helper import authenticate, generate_session_key, split_amongst, send_mail
 from sqlalchemy.exc import IntegrityError
 
 user_post_parser = reqparse.RequestParser()
@@ -51,10 +50,8 @@ class LoginResource(Resource):
         user = models.User.query.filter_by(email=email).first()
         if user:
             token = user.generate_login_token().decode()
-            print("#"*10)
-            print("> Generated new logintoken for '{}'".format(user.email))
-            print("> {}".format(token))
-            print("#"*10)
+            body = "Hi {},\n your login token for OpenSplit is:\n{}/login/{}".format(user.name, app.config["BASE_URL"], token)
+            send_mail(user.email, "New login token", body)
             return {"message":"success"}
         else:
             abort(500)
