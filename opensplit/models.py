@@ -81,11 +81,20 @@ class Group(db.Model):
         self.token = helper.generate_session_key()
 
     def jsonify(self):
-        return {"id": self.id,
-                "name": self.name,
-                "owner": self.owner,
-                "debts": helper.calculate_debts(self.id),
-                "member": [u.jsonify() for u in self.member]}
+        group_data = {"id": self.id,
+                    "name": self.name,
+                    "owner": self.owner,
+                    "member": [u.jsonify() for u in self.member]}
+
+        debts = helper.calculate_debts(self.id)
+        for entry in group_data["member"]:
+            try:
+                entry["debts"] = debts[entry["name"]]
+            except KeyError:
+                entry["debts"] = {"total": 0, "owes": []}
+
+        return group_data
+
 
 
 
