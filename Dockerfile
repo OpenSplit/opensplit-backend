@@ -17,7 +17,7 @@ RUN pipenv install
 
 # Copy src
 ADD . /code/
-RUN rm -rf /code/database
-VOLUME /code/database
+RUN rm -rf /code/var
+VOLUME /code/var
 
 CMD ["/code/entry.sh"]
