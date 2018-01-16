@@ -1,6 +1,5 @@
 #! /usr/bin/env python3
-from opensplit import app, db
-from opensplit.helper import generate_session_key
+from opensplit import app, db, helper
 from sqlalchemy import Table, Column, Integer, String, ForeignKey, Numeric
 from sqlalchemy.orm import relationship
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
@@ -85,12 +84,10 @@ class Group(db.Model):
         return {"id": self.id,
                 "name": self.name,
                 "owner": self.owner,
-                "debts": calculate_debts(self.id),
+                "debts": helper.calculate_debts(self.id),
                 "member": [u.jsonify() for u in self.member]}
 
 
-# I hate circular import dependencies in Python!
-from opensplit.helper import calculate_debts
 
 
 class Expense(db.Model):

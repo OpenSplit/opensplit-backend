@@ -2,10 +2,9 @@
 from flask_restful import Resource, reqparse, abort
 from opensplit import api, db
 from flask import g
-from opensplit.models import User, Session, Group, Expense
+from opensplit import models
 from opensplit.helper import authenticate, generate_session_key, split_amongst
 from sqlalchemy.exc import IntegrityError
-import pprint
 
 user_post_parser = reqparse.RequestParser()
 user_post_parser.add_argument('email')
@@ -22,7 +21,7 @@ class UserResource(Resource):
 
     def post(self):
         args = user_post_parser.parse_args()
-        u = User(email=args["email"], name=args["name"])
+        u = models.User(email=args["email"], name=args["name"])
         db.session.add(u)
         db.session.commit()
         return {"message":"success"}
@@ -30,7 +29,7 @@ class UserResource(Resource):
 class SpecialUserResource(Resource):
     @authenticate
     def get(self, user_id):
-        user = User.query.get(user_id)
+        user = models.User.query.get(user_id)
         if user:
             return {"id": user.id,
                     "name": user.name,
@@ -49,7 +48,7 @@ class LoginResource(Resource):
         """
         Generate a new login token
         """
-        user = User.query.filter_by(email=email).first()
+        user = models.User.query.filter_by(email=email).first()
         if user:
             token = user.generate_login_token().decode()
             print("#"*10)
@@ -66,11 +65,11 @@ class SessionResource(Resource):
         """
         Generate a new session
         """
-        user = User.verify_login_token(login_token)
+        user = models.User.verify_login_token(login_token)
         if user:
             # return "valid token for userid {}".format(user.id)
             session_key = generate_session_key()
-            s = Session(user=user, session_key=session_key)
+            s = models.Session(user=user, session_key=session_key)
             db.session.add(s)
             db.session.commit()
             return {"session_key": session_key}
@@ -131,7 +130,7 @@ class UserGroupResource(Resource):
         """
         Leave group
         """
-        group = Group.query.filter_by(id=group_id).first()
+        group = models.Group.query.filter_by(id=group_id).first()
         if not group:
             abort(500, message="No group with this ID")
 
@@ -160,12 +159,12 @@ class ExpenseResource(Resource):
         Add expense
         """
         args = expense_post_parser.parse_args()
-        e = Expense(description=args["description"], amount=args["amount"],
+        e = models.Expense(description=args["description"], amount=args["amount"],
                     group_id=args["group_id"], paid_by=args["paid_by"])
         print(args)
         print(args["split_amongst"])
         for user_id in args["split_amongst"]:
-            e.split_amongst.append(User.query.get(user_id))
+            e.split_amongst.append(models.User.query.get(user_id))
         db.session.add(e)
         db.session.commit()
 
@@ -176,7 +175,7 @@ class TransactionResource(Resource):
         """
         Return list of transactions
         """
-        group = Group.query.get(group_id)
+        group = models.Group.query.get(group_id)
         return [e.jsonify() for e in group.expenses],
 
 
