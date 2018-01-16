@@ -96,12 +96,16 @@ def calculate_debts(group_id):
                 continue
 
     # Change format and remove empty lines
-    debts_clean = {}
+    debts_clean = {m.name: {"owes": [], "total": 0} for m in group.member}
+
     for userA, userdebts in debts.items():
-        debts_clean[userA] = {"total": 0, "owes": []}
         for userB, value in userdebts.items():
             if value > 0:
-                debts_clean[userA]["total"] += value
-                debts_clean[userA]["owes"].append((userB, value))
+
+                # Debts for userA, is credit for userB
+                debts_clean[userA]["total"] -= value/100
+                debts_clean[userB]["total"] += value/100
+
+                debts_clean[userA]["owes"].append((userB, value/100))
 
     return debts_clean
