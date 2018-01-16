@@ -4,8 +4,8 @@ MAINTAINER Felix Breidenstein <mail@felixbreidenstein.de>
 ENV PYTHONUNBUFFERED 1
 
 RUN apk update \
-    && apk add --no-cache git\
-	&& pip install pipenv
+  && apk add --no-cache git\
+  && pip install pipenv
 
 RUN mkdir /code
 WORKDIR /code
