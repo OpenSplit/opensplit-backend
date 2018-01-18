@@ -10,6 +10,7 @@ SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'var/opensplit.db
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 # Email
+EMAIL_ENABLED = False
 SMTP_USER = "no-reply@openspl.it"
 SMTP_HOST = "mail.foobar.com"
 SMTP_PASS = "evenmoresecret"

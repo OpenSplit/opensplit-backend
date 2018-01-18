@@ -50,8 +50,11 @@ class LoginResource(Resource):
         user = models.User.query.filter_by(email=email).first()
         if user:
             token = user.generate_login_token().decode()
-            body = "Hi {},\n your login token for OpenSplit is:\n{}/login/{}".format(user.name, app.config["BASE_URL"], token)
-            send_mail(user.email, "New login token", body)
+            if app.config["EMAIL_ENABLED"]:
+                body = "Hi {},\n your login token for OpenSplit is:\n{}/login/{}".format(user.name, app.config["BASE_URL"], token)
+                send_mail(user.email, "New login token", body)
+            else:
+                print("Login-Token for {}: {}".format(user.name, token))
             return {"message":"success"}
         else:
             abort(500)
