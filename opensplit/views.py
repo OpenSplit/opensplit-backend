@@ -108,7 +108,7 @@ class GroupResource(Resource):
 class UserGroupResource(Resource):
     method_decorators = [authenticate]
 
-    def post(self, group_token):
+    def get(self, group_token):
         """
         Join group
         """
