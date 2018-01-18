@@ -2,7 +2,7 @@
 from flask_restful import Resource, reqparse, abort
 from opensplit import api, db, app, models
 from flask import g
-from opensplit.helper import authenticate, generate_session_key, split_amongst, send_mail
+from opensplit.helper import authenticate, generate_random_string, split_amongst, send_mail
 from sqlalchemy.exc import IntegrityError
 
 user_post_parser = reqparse.RequestParser()
@@ -65,7 +65,7 @@ class SessionResource(Resource):
         user = models.User.verify_login_token(login_token)
         if user:
             # return "valid token for userid {}".format(user.id)
-            session_key = generate_session_key()
+            session_key = generate_random_string(length=50)
             s = models.Session(user=user, session_key=session_key)
             db.session.add(s)
             db.session.commit()

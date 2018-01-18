@@ -43,13 +43,16 @@ def authenticate(func):
     return wrapper
 
 
-def generate_session_key():
+def generate_random_string(url=False, length=50):
     """
     Generate a long and secure string
     - Code stolen from Django Project -
     """
-    allowed_chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
-    length = 50
+    if url:
+        allowed_chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
+    else:
+        allowed_chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
+
     return ''.join(random.choice(allowed_chars) for i in range(length))
 
 

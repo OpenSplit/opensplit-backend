@@ -78,7 +78,7 @@ class Group(db.Model):
     def __init__(self, name, owner):
         self.name = name
         self.owner = owner
-        self.token = helper.generate_session_key()
+        self.token = helper.generate_random_string(url=True, length=30)
 
     def jsonify(self):
         group_data = {"id": self.id,
