@@ -18,11 +18,12 @@ RUN pipenv install
 # Copy src
 ADD . /code/
 
-VOLUME /code/var
-VOLUME /code/config.py
 
 # Clean everything which comes from the outside as volume
 RUN rm -rf /code/var
 RUN rm -rf /code/config.py
+
+VOLUME /code/var
+VOLUME /code/config.py
 
 CMD ["/code/entry.sh"]
