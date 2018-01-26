@@ -1,4 +1,4 @@
-swagger: "2.0"
+openapi: "3.0.1"
 info:
   description: This is an opensplit server. You can find out more about Opensplit at [http://openspl.it](http://openspl.it).
   version: "1.0.0"
@@ -9,8 +9,9 @@ info:
   license:
     name: AGPL 3.0
     url: https://www.gnu.org/licenses/agpl-3.0.html
-host: app.openspl.it
-basePath: /
+servers:
+- url: http://app.openspl.it
+  description: production server
 tags:
 - name: users
   description: Operations related to users
@@ -20,8 +21,6 @@ tags:
   description: Operations related to groups
 - name: transactions
   description: Operations related to transactions of a group
-schemes:
-- https
 paths:
   /users:
     get:
@@ -31,23 +30,25 @@ paths:
       responses:
         200:
           description: User list retrieved successfully
-          schema:
-            type: array
-            items:
-              $ref: "#/definitions/UserInfo"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserInfo"
         403:
           description: Session expired
     put:
       tags:
-        - users
+      - users
       description: Creates a user account and emails an activation token to the specified email address
-      parameters:
-      - in: body
-        name: body
+      requestBody:
         required: true
         description: Username and email for the new user account
-        schema:
-            $ref: "#/definitions/UserInfo"
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserInfo"
       responses:
         201:
           description: User account successfully created and email sent
@@ -55,22 +56,25 @@ paths:
           description: Malformed or invalid body content
     post:
       tags:
-        - users
+      - users
       description: Update own user data
       parameters:
-      - in: body
-        name: body
+      requestBody:
         required: true
         description: Data to be updated
-        schema:
-            $ref: "#/definitions/UserInfo"
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserInfo"
       responses:
         200:
           description: User account successfully updated
-          schema:
-            description: A description of the result of the action
-            type: string
-            example: "Updated user data: current username is AwesomeUser and current email is awesome_user@example.com"
+          content:
+            application/json:
+              schema:
+                description: A description of the result of the action
+                type: string
+                example: "Updated user data: current username is AwesomeUser and current email is awesome_user@example.com"
         400:
           description: Malformed body content
         403:
@@ -90,16 +94,19 @@ paths:
       - users
       description: Returns the user's ID and email
       parameters:
-      - in: path
-        name: userId
-        required: true
+      - name: userId
+        in: path
         description: ID of the user to be returned
-        type: string
+        required: true
+        schema:
+          type: string
       responses:
         200:
           description: User info retrieved successfully
-          schema:
-            $ref: "#/definitions/UserInfo"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserInfo"
         403:
           description: Session expired
         404:
@@ -112,33 +119,35 @@ paths:
       responses:
         200:
           description: Message list retrieved successfully
-          schema:
-            type: array
-            items:
-              $ref: "#/definitions/Message"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Message"
         403:
           description: Session expired
     put:
       tags:
         - messages
       description: Sends a message to a single user
-      parameters:
-      - in: body
-        name: body
+      requestBody:
         required: true
         description: userId of recipient and text to be sent
-        schema:
-          type: object
-          required:
-          - recipient
-          - text
-          properties:
-            recipient:
-              type: string
-              example: AmazingUser
-            text:
-              type: string
-              example: Hello AmazingUser, how do you do?
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - recipient
+              - text
+              properties:
+                recipient:
+                  type: string
+                  example: AmazingUser
+                text:
+                  type: string
+                  example: Hello AmazingUser, how do you do?
       responses:
         201:
           description: Message successfully created
@@ -160,8 +169,10 @@ paths:
       responses:
         200:
           description: Message retrieved successfully
-          schema:
-            $ref: "#/definitions/Message"
+          content:
+            application/json:
+              schema:
+               $ref: "#/components/schemas/Message"
         403:
           description: User does not have permission to access this message or session expired
         404:
@@ -174,10 +185,12 @@ paths:
       responses:
         200:
           description: Group list retrieved successfully
-          schema:
-            type: array
-            items:
-              $ref: "#/definitions/Group"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Group"
         403:
           description: Session expired
   /groups/{groupId}:
@@ -194,8 +207,10 @@ paths:
       responses:
         200:
           description: Group retrieved successfully.
-          schema:
-            $ref: "#/definitions/Group"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Group"
         403:
           description: User does not have permission to access this group or session expired
         404:
@@ -214,10 +229,12 @@ paths:
       responses:
         200:
           description: User list retrieved successfully
-          schema:
-            type: array
-            items:
-              $ref: "#/definitions/UserInfo"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserInfo"
         403:
           description: User does not have permission to access this group or session expired
         404:
@@ -236,8 +253,10 @@ paths:
       responses:
         200:
           description: Token retrieved successfully
-          schema:
-            type: string
+          content:
+            application/json:
+              schema:
+                type: string
         403:
           description: User does not have permission to access this group or session expired
         404:
@@ -261,10 +280,12 @@ paths:
       responses:
         200:
           description: Group joined successfully
-          schema:
-            description: Information on the joining operation
-            type: string
-            example: User has successfully joined group 'Epic Group'
+          content:
+            application/json:
+              schema:
+                description: Information on the joining operation
+                type: string
+                example: User has successfully joined group 'Epic Group'
         403:
           description: User does not have permission to access this group or session expired
         404:
@@ -283,10 +304,12 @@ paths:
       responses:
         200:
           description: Group left successfully
-          schema:
-            description: Information on the leaving operation
-            type: string
-            example: User has successfully left group 'Boring Group'
+          content:
+            application/json:
+              schema:
+                description: Information on the leaving operation
+                type: string
+                example: User has successfully left group 'Boring Group'
         403:
           description: User does not have permission to access this group or session expired
         404:
@@ -305,10 +328,12 @@ paths:
       responses:
         200:
           description: Transaction list retrieved successfully
-          schema:
-            type: array
-            items:
-              $ref: "#/definitions/Transaction"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Transaction"
         403:
           description: User does not have permission to access this group or session expired
         404:
@@ -323,11 +348,13 @@ paths:
         required: true
         description: ID of the group whose transactions are to be returned
         type: string
-      - in: body
-        name: body
+      requestBody:
+        description: New transaction object
         required: true
-        schema:
-          $ref: "#/definitions/Transaction"
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Transaction"
       responses:
         201:
           description: Transaction successfully created
@@ -356,8 +383,10 @@ paths:
       responses:
         200:
           description: Transaction retrieved successfully
-          schema:
-            $ref: "#/definitions/Transaction"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
         403:
           description: User does not have permission to access this group or session expired
         404:
@@ -377,19 +406,22 @@ paths:
         required: true
         description: ID of the transaction to be updated
         type: string
-      - in: body
-        name: body
+      requestBody:
         required: true
         description: Transaction object to replace the current one
-        schema:
-          $ref: "#/definitions/Transaction"
+        content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
       responses:
         200:
           description: Transaction updated successfully
-          schema:
-            description: A description of the result of the action
-            type: string
-            example: Transaction of 30€ between Albert, Berta and Christine successfully updated.
+          content:
+            application/json:
+              schema:
+                description: A description of the result of the action
+                type: string
+                example: Transaction of 30€ between Albert, Berta and Christine successfully updated.
         400:
           description: Malformed or invalid body content
         403:
@@ -418,72 +450,73 @@ paths:
           description: User does not have permission to access this group or session expired
         404:
           description: Invalid groupId or transactionId in the path parameter
-definitions:
-  UserInfo:
-    type: object
-    required:
-      - username
-      - email
-    properties:
-      username:
-        type: string
-        example: AmazingUser
-      email:
-        type: string
-        example: amazing_user123@example.com
-  Message:
-    type: object
-    required:
-    - sender
-    - recipient
-    - content
-    properties:
-      sender:
-        description: The sender of the message
-        type: string
-      recipient:
-        description: The recipient of the message
-        type: string
-      content:
-        description: The content of the message
-        type: string
-  Transaction:
-    type: object
-    required:
-    - payer
-    - value
-    - members
-    properties:
-      payer:
-        description: The ID of the ser who paid the transaction
-        type: string
-        example: "4d37a80d"
-      value:
-        description: The total value of the transaction
-        type: number
-        example: 50.39
-      members:
-        description: The IDs of the remaining users involved in the transaction
-        type: array
-        items:
+components:
+  schemas:
+    UserInfo:
+      type: object
+      required:
+        - username
+        - email
+      properties:
+        username:
           type: string
-          example: "1ab34d9c"
-  Group:
-    type: object
-    required:
-    - name
-    - balance
-    - owner
-    properties:
-      name:
-        description: The name of the group
-        type: string
-        example: Pizza Group
-      balance:
-        description: The current balance of the group
-        type: number
-        example: 30.94
-      owner:
-        description: The ID of the user who owns the group
-        type: string
-        example: "4d37a80d"
+          example: AmazingUser
+        email:
+          type: string
+          example: amazing_user123@example.com
+    Message:
+      type: object
+      required:
+      - sender
+      - recipient
+      - content
+      properties:
+        sender:
+          description: The sender of the message
+          type: string
+        recipient:
+          description: The recipient of the message
+          type: string
+        content:
+          description: The content of the message
+          type: string
+    Transaction:
+      type: object
+      required:
+      - payer
+      - value
+      - members
+      properties:
+        payer:
+          description: The ID of the ser who paid the transaction
+          type: string
+          example: "4d37a80d"
+        value:
+          description: The total value of the transaction
+          type: number
+          example: 50.39
+        members:
+          description: The IDs of the remaining users involved in the transaction
+          type: array
+          items:
+            type: string
+            example: "1ab34d9c"
+    Group:
+      type: object
+      required:
+      - name
+      - balance
+      - owner
+      properties:
+        name:
+          description: The name of the group
+          type: string
+          example: Pizza Group
+        balance:
+          description: The current balance of the group
+          type: number
+          example: 30.94
+        owner:
+          description: The ID of the user who owns the group
+          type: string
+          example: "4d37a80d"
