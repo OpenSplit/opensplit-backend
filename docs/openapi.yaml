@@ -1,0 +1,489 @@
+swagger: "2.0"
+info:
+  description: This is an opensplit server. You can find out more about Opensplit at [http://openspl.it](http://openspl.it).
+  version: "1.0.0"
+  title: Opensplit
+  termsOfService: ""
+  contact:
+    email: thegrumps@darmstadt.ccc.de
+  license:
+    name: AGPL 3.0
+    url: https://www.gnu.org/licenses/agpl-3.0.html
+host: app.openspl.it
+basePath: /
+tags:
+- name: users
+  description: Operations related to users
+- name: messages
+  description: Operations related to messages
+- name: groups
+  description: Operations related to groups
+- name: transactions
+  description: Operations related to transactions of a group
+schemes:
+- https
+paths:
+  /users:
+    get:
+      tags:
+      - users
+      description: Returns a list of all users
+      responses:
+        200:
+          description: User list retrieved successfully
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/UserInfo"
+        403:
+          description: Session expired
+    put:
+      tags:
+        - users
+      description: Creates a user account and emails an activation token to the specified email address
+      parameters:
+      - in: body
+        name: body
+        required: true
+        description: Username and email for the new user account
+        schema:
+            $ref: "#/definitions/UserInfo"
+      responses:
+        201:
+          description: User account successfully created and email sent
+        400:
+          description: Malformed or invalid body content
+    post:
+      tags:
+        - users
+      description: Update own user data
+      parameters:
+      - in: body
+        name: body
+        required: true
+        description: Data to be updated
+        schema:
+            $ref: "#/definitions/UserInfo"
+      responses:
+        200:
+          description: User account successfully updated
+          schema:
+            description: A description of the result of the action
+            type: string
+            example: "Updated user data: current username is AwesomeUser and current email is awesome_user@example.com"
+        400:
+          description: Malformed body content
+        403:
+          description: session expired
+    delete:
+      tags:
+      - users
+      description: Deletes own user account
+      responses:
+        200:
+          description: User deleted successfully
+        403:
+          description: Session expired
+  /users/{userId}:
+    get:
+      tags:
+      - users
+      description: Returns the user's ID and email
+      parameters:
+      - in: path
+        name: userId
+        required: true
+        description: ID of the user to be returned
+        type: string
+      responses:
+        200:
+          description: User info retrieved successfully
+          schema:
+            $ref: "#/definitions/UserInfo"
+        403:
+          description: Session expired
+        404:
+          description: Invalid userID in the path parameter
+  /messages:
+    get:
+      tags:
+      - messages
+      description: Returns a list of all messages for the current user
+      responses:
+        200:
+          description: Message list retrieved successfully
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Message"
+        403:
+          description: Session expired
+    put:
+      tags:
+        - messages
+      description: Sends a message to a single user
+      parameters:
+      - in: body
+        name: body
+        required: true
+        description: userId of recipient and text to be sent
+        schema:
+          type: object
+          required:
+          - recipient
+          - text
+          properties:
+            recipient:
+              type: string
+              example: AmazingUser
+            text:
+              type: string
+              example: Hello AmazingUser, how do you do?
+      responses:
+        201:
+          description: Message successfully created
+        400:
+          description: Malformed or invalid body content
+        403:
+          description: Session expired
+  /messages/{messageId}:
+    get:
+      tags:
+      - messages
+      description: Returns a given message belonging to the current user
+      parameters:
+      - in: path
+        name: messageId
+        required: true
+        description: ID of the message to be returned
+        type: string
+      responses:
+        200:
+          description: Message retrieved successfully
+          schema:
+            $ref: "#/definitions/Message"
+        403:
+          description: User does not have permission to access this message or session expired
+        404:
+          description: Invalid messageId in the path parameter
+  /groups:
+    get:
+      tags:
+      - groups
+      description: Returns a list of all groups for the current user
+      responses:
+        200:
+          description: Group list retrieved successfully
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Group"
+        403:
+          description: Session expired
+  /groups/{groupId}:
+    get:
+      tags:
+      - groups
+      description: Returns the group with matching ID
+      parameters:
+      - in: path
+        name: groupId
+        required: true
+        description: ID of the group to be returned
+        type: string
+      responses:
+        200:
+          description: Group retrieved successfully.
+          schema:
+            $ref: "#/definitions/Group"
+        403:
+          description: User does not have permission to access this group or session expired
+        404:
+          description: Invalid groupId in the path parameter
+  /groups/{groupId}/users:
+    get:
+      tags:
+      - groups
+      description: Returns a list of all users in the group
+      parameters:
+      - in: path
+        name: groupId
+        required: true
+        description: ID of the group whose users are to be returned
+        type: string
+      responses:
+        200:
+          description: User list retrieved successfully
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/UserInfo"
+        403:
+          description: User does not have permission to access this group or session expired
+        404:
+          description: Invalid groupId in the path parameter
+  /groups/{groupId}/generateToken:
+    get:
+      tags:
+      - groups
+      description: Returns a token to authorize joiningthe group with matching ID
+      parameters:
+      - in: path
+        name: groupId
+        required: true
+        description: ID of the group to be returned
+        type: string
+      responses:
+        200:
+          description: Token retrieved successfully
+          schema:
+            type: string
+        403:
+          description: User does not have permission to access this group or session expired
+        404:
+          description: Invalid groupId in the path parameter
+  /groups/{groupId}/join/{token}:
+    post:
+      tags:
+      - groups
+      description: Makes the current user join the group with matching ID
+      parameters:
+      - in: path
+        name: groupId
+        required: true
+        description: ID of the group to be returned
+        type: string
+      - in: path
+        name: token
+        required: true
+        description: Token to authorize the membership change
+        type: string
+      responses:
+        200:
+          description: Group joined successfully
+          schema:
+            description: Information on the joining operation
+            type: string
+            example: User has successfully joined group 'Epic Group'
+        403:
+          description: User does not have permission to access this group or session expired
+        404:
+          description: Invalid groupId or token in the path parameter
+  /groups/{groupId}/leave:
+    post:
+      tags:
+      - groups
+      description: Makes the current user leave the group with matching ID
+      parameters:
+      - in: path
+        name: groupId
+        required: true
+        description: ID of the group to be returned
+        type: string
+      responses:
+        200:
+          description: Group left successfully
+          schema:
+            description: Information on the leaving operation
+            type: string
+            example: User has successfully left group 'Boring Group'
+        403:
+          description: User does not have permission to access this group or session expired
+        404:
+          description: Invalid groupId in the path parameter
+  /groups/{groupId}/transactions:
+    get:
+      tags:
+      - transactions
+      description: Returns a list of all transactions of the group
+      parameters:
+      - in: path
+        name: groupId
+        required: true
+        description: ID of the group whose transactions are to be returned
+        type: string
+      responses:
+        200:
+          description: Transaction list retrieved successfully
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Transaction"
+        403:
+          description: User does not have permission to access this group or session expired
+        404:
+          description: Invalid groupId in the path parameter
+    put:
+      tags:
+      - transactions
+      description: Creates a transaction in this group.
+      parameters:
+      - in: path
+        name: groupId
+        required: true
+        description: ID of the group whose transactions are to be returned
+        type: string
+      - in: body
+        name: body
+        required: true
+        schema:
+          $ref: "#/definitions/Transaction"
+      responses:
+        201:
+          description: Transaction successfully created
+        400:
+          description: Malformed or invalid body content
+        403:
+          description: User does not have permission to access this group or session expired
+        404:
+          description: Invalid groupId in the path parameter
+  /groups/{groupId}/transactions/{transactionId}:
+    get:
+      tags:
+      - transactions
+      description: Returns the transaction with matching ID
+      parameters:
+      - in: path
+        name: groupId
+        required: true
+        description: ID of the group whose transactions are to be returned
+        type: string
+      - in: path
+        name: transactionId
+        required: true
+        description: ID of the transaction to be returned
+        type: string
+      responses:
+        200:
+          description: Transaction retrieved successfully
+          schema:
+            $ref: "#/definitions/Transaction"
+        403:
+          description: User does not have permission to access this group or session expired
+        404:
+          description: Invalid groupId or transactionId in the path parameter
+    post:
+      tags:
+      - transactions
+      description: Returns the transaction with matching ID
+      parameters:
+      - in: path
+        name: groupId
+        required: true
+        description: ID of the group whose transactions are to be returned
+        type: string
+      - in: path
+        name: transactionId
+        required: true
+        description: ID of the transaction to be updated
+        type: string
+      - in: body
+        name: body
+        required: true
+        description: Transaction object to replace the current one
+        schema:
+          $ref: "#/definitions/Transaction"
+      responses:
+        200:
+          description: Transaction updated successfully
+          schema:
+            description: A description of the result of the action
+            type: string
+            example: Transaction of 30€ between Albert, Berta and Christine successfully updated.
+        400:
+          description: Malformed or invalid body content
+        403:
+          description: User does not have permission to access this group or session expired
+        404:
+          description: Invalid groupId or transactionId in the path parameter
+    delete:
+      tags:
+      - transactions
+      description: Returns the transaction with matching ID
+      parameters:
+      - in: path
+        name: groupId
+        required: true
+        description: ID of the group whose transactions are to be returned
+        type: string
+      - in: path
+        name: transactionId
+        required: true
+        description: ID of the transaction to be deleted
+        type: string
+      responses:
+        200:
+          description: Transaction deleted successfully
+        403:
+          description: User does not have permission to access this group or session expired
+        404:
+          description: Invalid groupId or transactionId in the path parameter
+definitions:
+  UserInfo:
+    type: object
+    required:
+      - username
+      - email
+    properties:
+      username:
+        type: string
+        example: AmazingUser
+      email:
+        type: string
+        example: amazing_user123@example.com
+  Message:
+    type: object
+    required:
+    - sender
+    - recipient
+    - content
+    properties:
+      sender:
+        description: The sender of the message
+        type: string
+      recipient:
+        description: The recipient of the message
+        type: string
+      content:
+        description: The content of the message
+        type: string
+  Transaction:
+    type: object
+    required:
+    - payer
+    - value
+    - members
+    properties:
+      payer:
+        description: The ID of the ser who paid the transaction
+        type: string
+        example: "4d37a80d"
+      value:
+        description: The total value of the transaction
+        type: number
+        example: 50.39
+      members:
+        description: The IDs of the remaining users involved in the transaction
+        type: array
+        items:
+          type: string
+          example: "1ab34d9c"
+  Group:
+    type: object
+    required:
+    - name
+    - balance
+    - owner
+    properties:
+      name:
+        description: The name of the group
+        type: string
+        example: Pizza Group
+      balance:
+        description: The current balance of the group
+        type: number
+        example: 30.94
+      owner:
+        description: The ID of the user who owns the group
+        type: string
+        example: "4d37a80d"
