@@ -36,7 +36,7 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/UserInfo"
-        403:
+        401:
           description: Session expired
     put:
       tags:
@@ -107,7 +107,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/UserInfo"
-        403:
+        401:
           description: Session expired
         404:
           description: Invalid userID in the path parameter
@@ -125,7 +125,7 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Message"
-        403:
+        401:
           description: Session expired
     put:
       tags:
@@ -153,7 +153,7 @@ paths:
           description: Message successfully created
         400:
           description: Malformed or invalid body content
-        403:
+        401:
           description: Session expired
   /messages/{messageId}:
     get:
@@ -173,8 +173,10 @@ paths:
             application/json:
               schema:
                $ref: "#/components/schemas/Message"
+        401:
+          description: Session expired
         403:
-          description: User does not have permission to access this message or session expired
+          description: User does not have permission to access this message
         404:
           description: Invalid messageId in the path parameter
   /groups:
@@ -206,13 +208,15 @@ paths:
         type: string
       responses:
         200:
-          description: Group retrieved successfully.
+          description: Group retrieved successfully
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Group"
+        401:
+          description: Session expired
         403:
-          description: User does not have permission to access this group or session expired
+          description: User does not have permission to access this group
         404:
           description: Invalid groupId in the path parameter
   /groups/{groupId}/users:
@@ -235,8 +239,10 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/UserInfo"
+        401:
+          description: Session expired
         403:
-          description: User does not have permission to access this group or session expired
+          description: User does not have permission to access this group
         404:
           description: Invalid groupId in the path parameter
   /groups/{groupId}/generateToken:
@@ -257,8 +263,10 @@ paths:
             application/json:
               schema:
                 type: string
+        401:
+          description: Session expired
         403:
-          description: User does not have permission to access this group or session expired
+          description: User does not have permission to access this group
         404:
           description: Invalid groupId in the path parameter
   /groups/{groupId}/join/{token}:
@@ -286,8 +294,10 @@ paths:
                 description: Information on the joining operation
                 type: string
                 example: User has successfully joined group 'Epic Group'
+        401:
+          description: Session expired
         403:
-          description: User does not have permission to access this group or session expired
+          description: User does not have permission to access this group
         404:
           description: Invalid groupId or token in the path parameter
   /groups/{groupId}/leave:
@@ -310,8 +320,10 @@ paths:
                 description: Information on the leaving operation
                 type: string
                 example: User has successfully left group 'Boring Group'
+        401:
+          description: Session expired
         403:
-          description: User does not have permission to access this group or session expired
+          description: User does not have permission to access this group
         404:
           description: Invalid groupId in the path parameter
   /groups/{groupId}/transactions:
@@ -334,8 +346,10 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Transaction"
+        401:
+          description: Session expired
         403:
-          description: User does not have permission to access this group or session expired
+          description: User does not have permission to access this group
         404:
           description: Invalid groupId in the path parameter
     put:
@@ -360,8 +374,10 @@ paths:
           description: Transaction successfully created
         400:
           description: Malformed or invalid body content
+        401:
+          description: Session expired
         403:
-          description: User does not have permission to access this group or session expired
+          description: User does not have permission to access this group
         404:
           description: Invalid groupId in the path parameter
   /groups/{groupId}/transactions/{transactionId}:
@@ -387,8 +403,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Transaction"
+        401:
+          description: Session expired
         403:
-          description: User does not have permission to access this group or session expired
+          description: User does not have permission to access this group
         404:
           description: Invalid groupId or transactionId in the path parameter
     post:
@@ -424,8 +442,10 @@ paths:
                 example: Transaction of 30€ between Albert, Berta and Christine successfully updated.
         400:
           description: Malformed or invalid body content
+        401:
+          description: Session expired
         403:
-          description: User does not have permission to access this group or session expired
+          description: User does not have permission to access this group
         404:
           description: Invalid groupId or transactionId in the path parameter
     delete:
@@ -446,8 +466,10 @@ paths:
       responses:
         200:
           description: Transaction deleted successfully
+        401:
+          description: Session expired
         403:
-          description: User does not have permission to access this group or session expired
+          description: User does not have permission to access this group
         404:
           description: Invalid groupId or transactionId in the path parameter
 components:
