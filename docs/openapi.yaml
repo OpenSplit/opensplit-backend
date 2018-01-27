@@ -58,7 +58,6 @@ paths:
       tags:
       - users
       description: Update own user data
-      parameters:
       requestBody:
         required: true
         description: Data to be updated
@@ -161,11 +160,12 @@ paths:
       - messages
       description: Returns a given message belonging to the current user
       parameters:
-      - in: path
-        name: messageId
+      - name: messageId
+        in: path
         required: true
         description: ID of the message to be returned
-        type: string
+        schema:
+          type: string
       responses:
         200:
           description: Message retrieved successfully
@@ -205,7 +205,8 @@ paths:
         name: groupId
         required: true
         description: ID of the group to be returned
-        type: string
+        schema:
+          type: string
       responses:
         200:
           description: Group retrieved successfully
@@ -229,7 +230,8 @@ paths:
         name: groupId
         required: true
         description: ID of the group whose users are to be returned
-        type: string
+        schema:
+          type: string
       responses:
         200:
           description: User list retrieved successfully
@@ -255,7 +257,8 @@ paths:
         name: groupId
         required: true
         description: ID of the group to be returned
-        type: string
+        schema:
+          type: string
       responses:
         200:
           description: Token retrieved successfully
@@ -279,12 +282,14 @@ paths:
         name: groupId
         required: true
         description: ID of the group to be returned
-        type: string
+        schema:
+          type: string
       - in: path
         name: token
         required: true
         description: Token to authorize the membership change
-        type: string
+        schema:
+          type: string
       responses:
         200:
           description: Group joined successfully
@@ -310,7 +315,8 @@ paths:
         name: groupId
         required: true
         description: ID of the group to be returned
-        type: string
+        schema:
+          type: string
       responses:
         200:
           description: Group left successfully
@@ -336,7 +342,8 @@ paths:
         name: groupId
         required: true
         description: ID of the group whose transactions are to be returned
-        type: string
+        schema:
+          type: string
       responses:
         200:
           description: Transaction list retrieved successfully
@@ -361,7 +368,8 @@ paths:
         name: groupId
         required: true
         description: ID of the group whose transactions are to be returned
-        type: string
+        schema:
+          type: string
       requestBody:
         description: New transaction object
         required: true
@@ -390,12 +398,14 @@ paths:
         name: groupId
         required: true
         description: ID of the group whose transactions are to be returned
-        type: string
+        schema:
+          type: string
       - in: path
         name: transactionId
         required: true
         description: ID of the transaction to be returned
-        type: string
+        schema:
+          type: string
       responses:
         200:
           description: Transaction retrieved successfully
@@ -418,12 +428,14 @@ paths:
         name: groupId
         required: true
         description: ID of the group whose transactions are to be returned
-        type: string
+        schema:
+          type: string
       - in: path
         name: transactionId
         required: true
         description: ID of the transaction to be updated
-        type: string
+        schema:
+          type: string
       requestBody:
         required: true
         description: Transaction object to replace the current one
@@ -457,12 +469,14 @@ paths:
         name: groupId
         required: true
         description: ID of the group whose transactions are to be returned
-        type: string
+        schema:
+          type: string
       - in: path
         name: transactionId
         required: true
         description: ID of the transaction to be deleted
-        type: string
+        schema:
+          type: string
       responses:
         200:
           description: Transaction deleted successfully
