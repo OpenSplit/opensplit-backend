@@ -38,7 +38,7 @@ paths:
                   $ref: "#/components/schemas/UserInfo"
         401:
           description: Session expired
-    put:
+    post:
       tags:
       - users
       description: Creates a user account and emails an activation token to the specified email address
@@ -54,7 +54,7 @@ paths:
           description: User account successfully created and email sent
         400:
           description: Malformed or invalid body content
-    post:
+    put:
       tags:
       - users
       description: Update own user data
@@ -126,7 +126,7 @@ paths:
                   $ref: "#/components/schemas/Message"
         401:
           description: Session expired
-    put:
+    post:
       tags:
         - messages
       description: Sends a message to a single user
@@ -359,7 +359,7 @@ paths:
           description: User does not have permission to access this group
         404:
           description: Invalid groupId in the path parameter
-    put:
+    post:
       tags:
       - transactions
       description: Creates a transaction in this group.
@@ -397,7 +397,7 @@ paths:
       - in: path
         name: groupId
         required: true
-        description: ID of the group whose transactions are to be returned
+        description: ID of the group with this transaction
         schema:
           type: string
       - in: path
@@ -419,15 +419,15 @@ paths:
           description: User does not have permission to access this group
         404:
           description: Invalid groupId or transactionId in the path parameter
-    post:
+    put:
       tags:
       - transactions
-      description: Returns the transaction with matching ID
+      description: Update the transaction with matching ID
       parameters:
       - in: path
         name: groupId
         required: true
-        description: ID of the group whose transactions are to be returned
+        description: ID of the group with this transaction
         schema:
           type: string
       - in: path
@@ -463,12 +463,12 @@ paths:
     delete:
       tags:
       - transactions
-      description: Returns the transaction with matching ID
+      description: Deletes the transaction with matching ID
       parameters:
       - in: path
         name: groupId
         required: true
-        description: ID of the group whose transactions are to be returned
+        description: ID of the group with this transaction
         schema:
           type: string
       - in: path
