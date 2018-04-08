@@ -76,8 +76,8 @@ paths:
                 example: "Updated user data: current username is AwesomeUser and current email is awesome_user@example.com"
         400:
           description: Malformed body content
-        403:
-          description: session expired
+        401:
+          description: Session expired
     delete:
       tags:
       - users
@@ -85,7 +85,7 @@ paths:
       responses:
         200:
           description: User deleted successfully
-        403:
+        401:
           description: Session expired
   /users/{userId}:
     get:
