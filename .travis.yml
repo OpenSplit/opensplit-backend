@@ -8,4 +8,5 @@ install:
   - pipenv install
 
 script:
+  - cp config.py.example config.py
   - ./test.py
