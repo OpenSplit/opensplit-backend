@@ -3,4 +3,3 @@ from opensplit import db
 
 db.create_all()
 print("Done")
-

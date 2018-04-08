@@ -4,8 +4,8 @@ import opensplit
 import unittest
 import tempfile
 
-class OpenSplitTestCase(unittest.TestCase):
 
+class OpenSplitTestCase(unittest.TestCase):
     def setUp(self):
         self.db_filehandle, self.db_filename = tempfile.mkstemp()
         opensplit.app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///{}'.format(self.db_filename)
@@ -22,9 +22,8 @@ class OpenSplitTestCase(unittest.TestCase):
                 email='lol@nope.com',
                 name='John Doe'))
 
-        assert rv.status == "200 OK"
+        self.assertEqual(rv.status, "200 OK")
 
 
 if __name__ == '__main__':
     unittest.main()
-

@@ -82,10 +82,10 @@ class Group(db.Model):
 
     def jsonify(self):
         group_data = {"id": self.id,
-                    "name": self.name,
-                    "token": self.token,
-                    "owner": self.owner,
-                    "member": [u.jsonify() for u in self.member]}
+                      "name": self.name,
+                      "token": self.token,
+                      "owner": self.owner,
+                      "member": [u.jsonify() for u in self.member]}
 
         debts = helper.calculate_debts(self.id)
         for entry in group_data["member"]:
@@ -95,9 +95,6 @@ class Group(db.Model):
                 entry["debts"] = {"total": 0, "owes": []}
 
         return group_data
-
-
-
 
 
 class Expense(db.Model):
@@ -119,4 +116,3 @@ class Expense(db.Model):
                 "group_id": self.group_id,
                 "paid_by": self.paid_by,
                 "split_amongst": [u.jsonify() for u in self.split_amongst]}
-

@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 from flask import Flask
-from flask_restful import Api, reqparse
+from flask_restful import Api
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 
@@ -13,8 +13,10 @@ CORS(app)
 # Flask-RESTful
 api = Api(app)
 
+
 @app.teardown_appcontext
 def shutdown_session(exception=None):
     db.session.remove()
 
-import opensplit.views
+# import all the views which will register themselfes to `api`
+from . import views # noqa F401

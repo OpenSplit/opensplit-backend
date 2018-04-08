@@ -4,8 +4,10 @@ python:
   - "3.6"
 
 install:
-  - pip install pipenv
+  - pip install pipenv flake8
   - pipenv install
 
 script:
+  - cp config.py.example config.py
+  - flake8 .
   - ./test.py
