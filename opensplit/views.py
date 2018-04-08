@@ -2,8 +2,7 @@
 from flask_restful import Resource, reqparse, abort
 from opensplit import api, db, app, models
 from flask import g
-from opensplit.helper import authenticate, generate_random_string, split_amongst, send_mail
-from sqlalchemy.exc import IntegrityError
+from opensplit.helper import authenticate, generate_random_string, send_mail
 
 user_post_parser = reqparse.RequestParser()
 user_post_parser.add_argument('email')
@@ -23,7 +22,8 @@ class UserResource(Resource):
         u = models.User(email=args["email"], name=args["name"])
         db.session.add(u)
         db.session.commit()
-        return {"message":"success"}
+        return {"message": "success"}
+
 
 class SpecialUserResource(Resource):
     @authenticate
@@ -51,11 +51,14 @@ class LoginResource(Resource):
         if user:
             token = user.generate_login_token().decode()
             if app.config["EMAIL_ENABLED"]:
-                body = "Hi {},\n your login token for OpenSplit is:\n{}/login/{}".format(user.name, app.config["BASE_URL"], token)
+                login_url = "{}/login/{}".format(app.config['BASE_URL'], token)
+                body_tmpl = "Hi {},\n your login token for OpenSplit is:{}\n"
+                body = body_tmpl.format(user.name, login_url)
+
                 send_mail(user.email, "New login token", body)
             else:
                 print("Login-Token for {}: {}".format(user.name, token))
-            return {"message":"success"}
+            return {"message": "success"}
         else:
             abort(500)
 
@@ -159,12 +162,15 @@ class ExpenseResource(Resource):
         Add expense
         """
         args = expense_post_parser.parse_args()
-        e = models.Expense(description=args["description"], amount=args["amount"],
-                    group_id=args["group_id"], paid_by=args["paid_by"])
+        e = models.Expense(description=args["description"],
+                           amount=args["amount"],
+                           group_id=args["group_id"],
+                           paid_by=args["paid_by"])
         for user_id in args["split_amongst"]:
             e.split_amongst.append(models.User.query.get(user_id))
         db.session.add(e)
         db.session.commit()
+
 
 class TransactionResource(Resource):
     method_decorators = [authenticate]

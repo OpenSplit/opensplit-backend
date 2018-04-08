@@ -8,6 +8,7 @@ from opensplit import models, app
 from smtplib import SMTP_SSL
 from email.message import EmailMessage
 
+
 def send_mail(receiver, subject, body):
     msg = EmailMessage()
     msg.set_content(body)
@@ -94,7 +95,7 @@ def calculate_debts(group_id):
         payer = models.User.query.get(exp.paid_by)
         distribution = split_amongst(int(exp.amount*100), [u.name for u in exp.split_amongst])
 
-        print("paid: {} -> shares: {}".format(payer.name,distribution))
+        print("paid: {} -> shares: {}".format(payer.name, distribution))
         for user, amount in distribution:
             if user == payer.name:
                 continue
