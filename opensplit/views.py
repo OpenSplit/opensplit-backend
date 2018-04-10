@@ -2,7 +2,7 @@
 from flask_restful import Resource, reqparse, abort
 from opensplit import api, db, app, models
 from flask import g
-from opensplit.helper import authenticate, generate_random_string, send_mail
+from opensplit.helper import generate_random_string, send_mail
 
 user_post_parser = reqparse.RequestParser()
 user_post_parser.add_argument('email')
@@ -10,23 +10,31 @@ user_post_parser.add_argument('name')
 
 
 class UserResource(Resource):
-    @authenticate
+    # @authenticate
     def get(self):
-        return {"id": g.user.id,
-                "name": g.user.name,
-                "groups": [grp.jsonify() for grp in g.user.groups],
-                "email": g.user.email}
+        queryset = models.User.query.all()
+        return [u.jsonify() for u in queryset]
 
     def post(self):
+        # TODO: Handle existing usernames or emails
+        # TODO: Handle missing fields in body
         args = user_post_parser.parse_args()
         u = models.User(email=args["email"], name=args["name"])
         db.session.add(u)
         db.session.commit()
-        return {"message": "success"}
+        return {"message": "success"}, 201
+
+    def put(self):
+        # TODO: Update user
+        return "ok", 200
+
+    def delete(self):
+        # TODO: Delete user
+        return "ok", 200
 
 
 class SpecialUserResource(Resource):
-    @authenticate
+    # @authenticate
     def get(self, user_id):
         user = models.User.query.get(user_id)
         if user:
@@ -35,7 +43,7 @@ class SpecialUserResource(Resource):
                     "groups": [grp.jsonify() for grp in user.groups],
                     "email": user.email}
         else:
-            abort(500, message="No user with this ID")
+            return {"message": "No user with this ID"}, 404
 
 
 login_parser = reqparse.RequestParser()
@@ -85,24 +93,13 @@ group_post_parser.add_argument('name')
 
 
 class GroupResource(Resource):
-    method_decorators = [authenticate]
+    # method_decorators = [authenticate]
 
-    def get(self, group_id):
-        """
-        Get information about a specific group
-        """
-        group = models.Group.query.filter_by(id=group_id).first()
-        if not group:
-            abort(500, message="No group with this ID")
-        else:
-            if g.user not in group.member:
-                abort(500, message="Not a member of this group")
-            return group.jsonify()
+    def get(self):
+        queryset = models.Group.query.all()
+        return [g.jsonify() for g in queryset]
 
     def post(self):
-        """
-        Create new group
-        """
         args = group_post_parser.parse_args()
         group = models.Group(name=args["name"], owner=g.user.id)
         group.member.append(g.user)
@@ -111,39 +108,71 @@ class GroupResource(Resource):
         return {"message": "success"}
 
 
-class UserGroupResource(Resource):
-    method_decorators = [authenticate]
+class GroupDetailResource(Resource):
+    # method_decorators = [authenticate]
 
-    def get(self, group_token):
-        """
-        Join group
-        """
-        group = models.Group.query.filter_by(token=group_token).first()
+    def get(self, group_id):
+        group = models.Group.query.filter_by(id=group_id).first()
         if not group:
-            abort(500, message="No group with this ID")
+            return {"message": "No group with this ID"}, 404
         else:
-            if g.user in group.member:
-                abort(500, message="Allready member of this group")
+            if g.user not in group.member:
+                return {"message": "Not a member of this group"}, 403
+            return group.jsonify()
+
+
+class GroupUsersResource(Resource):
+    # method_decorators = [authenticate]
+
+    def get(self, group_id):
+        group = models.Group.query.filter_by(id=group_id).first()
+        if not group:
+            return {"message": "No group with this ID"}, 404
+        else:
+            if g.user not in group.member:
+                return {"message": "Not a member of this group"}, 403
+            return [u.jsonify() for u in group.member]
+
+
+class GroupTokenResource(Resource):
+    # method_decorators = [authenticate]
+
+    def get(self, group_id):
+        group = models.Group.query.filter_by(id=group_id).first()
+        if not group:
+            return {"message": "No group with this ID"}, 404
+        else:
+            if g.user not in group.member:
+                return {"message": "Not a member of this group"}, 403
+            return group.token
+
+
+class GroupJoinResource(Resource):
+    # method_decorators = [authenticate]
+
+    def post(self, group_id, token):
+        group = models.Group.query.filter_by(id=group_id).first()
+        if not group or group.token is not token:
+            return {"message": "No group with this ID or wrong token"}, 404
+        else:
             group.member.append(g.user)
             db.session.add(group)
             db.session.commit()
-            return {"status": "success"}
+            return "Group joined successfully"
 
-    def delete(self, group_id):
-        """
-        Leave group
-        """
+
+class GroupLeaveResource(Resource):
+    # method_decorators = [authenticate]
+
+    def post(self, group_id, token):
         group = models.Group.query.filter_by(id=group_id).first()
-        if not group:
-            abort(500, message="No group with this ID")
-
-        if g.user not in group.member:
-            abort(500, message="Not a group member")
-
-        group.member.remove(g.user)
-        db.session.add(group)
-        db.session.commit()
-        return "success"
+        if not group or g.user not in group.member:
+            return {"message": "No group with this ID or not a member"}, 404
+        else:
+            group.member.remove(g.user)
+            db.session.add(group)
+            db.session.commit()
+            return "Group left successfully"
 
 
 expense_post_parser = reqparse.RequestParser()
@@ -154,13 +183,14 @@ expense_post_parser.add_argument('paid_by')
 expense_post_parser.add_argument('split_amongst', action='append')
 
 
-class ExpenseResource(Resource):
-    method_decorators = [authenticate]
+class TransactionResource(Resource):
+    # method_decorators = [authenticate]
+
+    def get(self, group_id):
+        group = models.Group.query.get(group_id)
+        return [e.jsonify() for e in group.expenses],
 
     def post(self):
-        """
-        Add expense
-        """
         args = expense_post_parser.parse_args()
         e = models.Expense(description=args["description"],
                            amount=args["amount"],
@@ -172,22 +202,17 @@ class ExpenseResource(Resource):
         db.session.commit()
 
 
-class TransactionResource(Resource):
-    method_decorators = [authenticate]
+api.add_resource(UserResource, '/users')
+api.add_resource(SpecialUserResource, '/users/<int:user_id>')
 
-    def get(self, group_id):
-        """
-        Return list of transactions
-        """
-        group = models.Group.query.get(group_id)
-        return [e.jsonify() for e in group.expenses],
+api.add_resource(GroupResource, '/groups')
+api.add_resource(GroupDetailResource, '/groups/<int:group_id>')
+api.add_resource(GroupUsersResource, '/groups/<int:group_id>/users')
+api.add_resource(GroupTokenResource, '/groups/<int:group_id>/generateToken')
+api.add_resource(GroupJoinResource, '/groups/<int:group_id>/join/<string:token>')
+api.add_resource(GroupLeaveResource, '/groups/<int:group_id>/leave')
 
-
-api.add_resource(UserResource, '/user')
-api.add_resource(SpecialUserResource, '/user/<int:user_id>')
-api.add_resource(LoginResource, '/login/<string:email>')
-api.add_resource(GroupResource, '/group', '/group/<int:group_id>')
-api.add_resource(UserGroupResource, '/group/<string:group_token>')
 api.add_resource(SessionResource, '/session/<string:login_token>')
-api.add_resource(ExpenseResource, '/expense')
-api.add_resource(TransactionResource, '/transactions/<int:group_id>')
+api.add_resource(LoginResource, '/login/<string:email>')
+
+api.add_resource(TransactionResource, '/groups/<int:group_id>/transactions')

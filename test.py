@@ -18,11 +18,11 @@ class OpenSplitTestCase(unittest.TestCase):
         os.close(self.db_filehandle)
 
     def test_create_user(self):
-        rv = self.app.post('/user', data=dict(
+        rv = self.app.post('/users', data=dict(
                 email='lol@nope.com',
                 name='John Doe'))
 
-        self.assertEqual(rv.status, "200 OK")
+        self.assertEqual(rv.status, "201 CREATED")
 
 
 if __name__ == '__main__':
