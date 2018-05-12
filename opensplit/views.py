@@ -2,7 +2,7 @@
 from flask_restful import Resource, reqparse, abort
 from opensplit import api, db, app, models
 from flask import g
-from opensplit.helper import generate_random_string, send_mail
+from opensplit.helper import generate_random_string, send_mail, authenticate
 
 user_post_parser = reqparse.RequestParser()
 user_post_parser.add_argument('email')
@@ -93,7 +93,7 @@ group_post_parser.add_argument('name')
 
 
 class GroupResource(Resource):
-    # method_decorators = [authenticate]
+    method_decorators = [authenticate]
 
     def get(self):
         queryset = models.Group.query.all()
@@ -101,6 +101,7 @@ class GroupResource(Resource):
 
     def post(self):
         args = group_post_parser.parse_args()
+        print(g.user)
         group = models.Group(name=args["name"], owner=g.user.id)
         group.member.append(g.user)
         db.session.add(group)
@@ -109,7 +110,7 @@ class GroupResource(Resource):
 
 
 class GroupDetailResource(Resource):
-    # method_decorators = [authenticate]
+    method_decorators = [authenticate]
 
     def get(self, group_id):
         group = models.Group.query.filter_by(id=group_id).first()
@@ -122,7 +123,7 @@ class GroupDetailResource(Resource):
 
 
 class GroupUsersResource(Resource):
-    # method_decorators = [authenticate]
+    method_decorators = [authenticate]
 
     def get(self, group_id):
         group = models.Group.query.filter_by(id=group_id).first()
@@ -135,7 +136,7 @@ class GroupUsersResource(Resource):
 
 
 class GroupTokenResource(Resource):
-    # method_decorators = [authenticate]
+    method_decorators = [authenticate]
 
     def get(self, group_id):
         group = models.Group.query.filter_by(id=group_id).first()
@@ -148,7 +149,7 @@ class GroupTokenResource(Resource):
 
 
 class GroupJoinResource(Resource):
-    # method_decorators = [authenticate]
+    method_decorators = [authenticate]
 
     def post(self, group_id, token):
         group = models.Group.query.filter_by(id=group_id).first()
@@ -162,7 +163,7 @@ class GroupJoinResource(Resource):
 
 
 class GroupLeaveResource(Resource):
-    # method_decorators = [authenticate]
+    method_decorators = [authenticate]
 
     def post(self, group_id, token):
         group = models.Group.query.filter_by(id=group_id).first()
@@ -184,7 +185,7 @@ expense_post_parser.add_argument('split_amongst', action='append')
 
 
 class TransactionResource(Resource):
-    # method_decorators = [authenticate]
+    method_decorators = [authenticate]
 
     def get(self, group_id):
         group = models.Group.query.get(group_id)
