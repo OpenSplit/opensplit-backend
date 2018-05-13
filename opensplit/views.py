@@ -10,10 +10,10 @@ user_post_parser.add_argument('name')
 
 
 class UserResource(Resource):
-    # @authenticate
+    
+    @authenticate
     def get(self):
-        queryset = models.User.query.all()
-        return [u.jsonify() for u in queryset]
+        return g.user.jsonify()
 
     def post(self):
         # TODO: Handle existing usernames or emails
@@ -97,11 +97,10 @@ class GroupResource(Resource):
 
     def get(self):
         queryset = models.Group.query.all()
-        return [g.jsonify() for g in queryset]
+        return [grp.jsonify() for grp in queryset if g.user in grp.member]
 
     def post(self):
         args = group_post_parser.parse_args()
-        print(g.user)
         group = models.Group(name=args["name"], owner=g.user.id)
         group.member.append(g.user)
         db.session.add(group)
@@ -177,11 +176,10 @@ class GroupLeaveResource(Resource):
 
 
 expense_post_parser = reqparse.RequestParser()
-expense_post_parser.add_argument('description')
-expense_post_parser.add_argument('amount')
-expense_post_parser.add_argument('group_id')
-expense_post_parser.add_argument('paid_by')
-expense_post_parser.add_argument('split_amongst', action='append')
+expense_post_parser.add_argument('description', required=True)
+expense_post_parser.add_argument('amount', required=True)
+expense_post_parser.add_argument('paid_by',required=True)
+expense_post_parser.add_argument('split_amongst', action='append', required=True)
 
 
 class TransactionResource(Resource):
@@ -191,11 +189,11 @@ class TransactionResource(Resource):
         group = models.Group.query.get(group_id)
         return [e.jsonify() for e in group.expenses],
 
-    def post(self):
+    def post(self, group_id):
         args = expense_post_parser.parse_args()
         e = models.Expense(description=args["description"],
                            amount=args["amount"],
-                           group_id=args["group_id"],
+                           group_id=group_id,
                            paid_by=args["paid_by"])
         for user_id in args["split_amongst"]:
             e.split_amongst.append(models.User.query.get(user_id))
