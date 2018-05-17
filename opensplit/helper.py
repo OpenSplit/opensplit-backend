@@ -17,8 +17,8 @@ def send_mail(receiver, subject, body):
     msg['From'] = app.config["SMTP_FROM"]
     msg['To'] = receiver
 
-    hostname =  app.config["SMTP_HOST"]
-    port =  app.config["SMTP_PORT"]
+    hostname = app.config["SMTP_HOST"]
+    port = app.config["SMTP_PORT"]
 
     if app.config["SMTP_SSL"]:
         s = SMTP_SSL(hostname, port)

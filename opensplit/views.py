@@ -10,7 +10,7 @@ user_post_parser.add_argument('name')
 
 
 class UserResource(Resource):
-    
+
     @authenticate
     def get(self):
         return g.user.jsonify()
@@ -178,7 +178,7 @@ class GroupLeaveResource(Resource):
 expense_post_parser = reqparse.RequestParser()
 expense_post_parser.add_argument('description', required=True)
 expense_post_parser.add_argument('amount', required=True)
-expense_post_parser.add_argument('paid_by',required=True)
+expense_post_parser.add_argument('paid_by', required=True)
 expense_post_parser.add_argument('split_amongst', action='append', required=True)
 
 
