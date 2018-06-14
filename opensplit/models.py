@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 from opensplit import app, db, helper
-from sqlalchemy import Table, Column, Integer, String, ForeignKey, Numeric
+from sqlalchemy import Table, Column, Integer, String, ForeignKey, Numeric, Boolean
 from sqlalchemy.orm import relationship
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous import SignatureExpired, BadSignature
@@ -101,7 +101,7 @@ class Expense(db.Model):
     __tablename__ = 'expense'
     id = Column(Integer, primary_key=True)
     description = Column(String(120), nullable=False)
-    amount = Column(Numeric(10, 2), nullable=False)
+    amount = Column(Integer, nullable=False)
     group_id = Column(Integer, ForeignKey('group.id'), nullable=False)
     paid_by = Column(Integer, ForeignKey('user.id'), nullable=False)
     split_amongst = relationship(
@@ -112,7 +112,7 @@ class Expense(db.Model):
     def jsonify(self):
         return {"id": self.id,
                 "description": self.description,
-                "amount": float(self.amount),
+                "amount": float(self.amount / 100),
                 "group_id": self.group_id,
                 "paid_by": self.paid_by,
                 "split_amongst": [u.jsonify() for u in self.split_amongst]}
