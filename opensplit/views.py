@@ -150,9 +150,9 @@ class GroupTokenResource(Resource):
 class GroupJoinResource(Resource):
     method_decorators = [authenticate]
 
-    def post(self, group_id, token):
-        group = models.Group.query.filter_by(id=group_id).first()
-        if not group or group.token is not token:
+    def post(self, token):
+        group = models.Group.query.filter_by(token=token).first()
+        if not group:
             return {"message": "No group with this ID or wrong token"}, 404
         else:
             group.member.append(g.user)
@@ -215,8 +215,8 @@ api.add_resource(GroupResource, '/groups')
 api.add_resource(GroupDetailResource, '/groups/<int:group_id>')
 api.add_resource(GroupUsersResource, '/groups/<int:group_id>/users')
 api.add_resource(GroupTokenResource, '/groups/<int:group_id>/generateToken')
-api.add_resource(GroupJoinResource, '/groups/<int:group_id>/join/<string:token>')
 api.add_resource(GroupLeaveResource, '/groups/<int:group_id>/leave')
+api.add_resource(GroupJoinResource, '/groups/join/<string:token>')
 
 api.add_resource(SessionResource, '/session/<string:login_token>')
 api.add_resource(LoginResource, '/login/<string:email>')
