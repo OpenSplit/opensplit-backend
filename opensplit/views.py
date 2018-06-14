@@ -201,6 +201,13 @@ class TransactionResource(Resource):
         db.session.commit()
 
 
+class CheckResource(Resource):
+    method_decorators = [authenticate]
+
+    def get(self):
+        return "ok", 200
+
+
 api.add_resource(UserResource, '/users')
 api.add_resource(SpecialUserResource, '/users/<int:user_id>')
 
@@ -215,3 +222,5 @@ api.add_resource(SessionResource, '/session/<string:login_token>')
 api.add_resource(LoginResource, '/login/<string:email>')
 
 api.add_resource(TransactionResource, '/groups/<int:group_id>/transactions')
+
+api.add_resource(CheckResource, '/checktoken')
