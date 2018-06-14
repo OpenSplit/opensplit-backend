@@ -2,6 +2,13 @@ language: python
 python:
   - "3.6"
 
+env:
+  global:
+  - IMAGE="opensplit/backend"
+
+services:
+    - docker
+
 install:
   - pip install pipenv flake8
   - pipenv install
@@ -10,3 +17,9 @@ script:
   - cp config.py.example config.py
   - flake8 .
   - ./test.py
+  - docker build -t $IMAGE .
+
+after_success:
+  - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
+  - docker push $IMAGE
+
