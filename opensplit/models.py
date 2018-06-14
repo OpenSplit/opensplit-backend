@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 from opensplit import app, db, helper
-from sqlalchemy import Table, Column, Integer, String, ForeignKey, Numeric, Boolean
+from sqlalchemy import Table, Column, Integer, String, ForeignKey, Numeric
 from sqlalchemy.orm import relationship
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous import SignatureExpired, BadSignature
