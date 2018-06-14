@@ -60,7 +60,7 @@ class LoginResource(Resource):
             token = user.generate_login_token().decode()
             if app.config["EMAIL_ENABLED"]:
                 login_url = "{}/login/{}".format(app.config['BASE_URL'], token)
-                body_tmpl = "Hi {},\n your login token for OpenSplit is:{}\n"
+                body_tmpl = "Hi {},\n your login token for OpenSplit is: {}\n"
                 body = body_tmpl.format(user.name, login_url)
 
                 send_mail(user.email, "New login token", body)
