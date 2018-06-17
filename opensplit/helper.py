@@ -5,29 +5,23 @@ from flask_restful import abort, request
 from flask import g
 from random import shuffle
 from opensplit import models, app
-from smtplib import SMTP_SSL, SMTP
-from email.message import EmailMessage
+from envelopes import Envelope
 
 
 def send_mail(receiver, subject, body):
-    msg = EmailMessage()
-    msg.set_content(body)
+    envelope = Envelope(
+        from_addr=app.config["SMTP_FROM"],
+        to_addr=receiver,
+        subject=subject,
+        text_body=body
+    )
 
-    msg['Subject'] = subject
-    msg['From'] = app.config["SMTP_FROM"]
-    msg['To'] = receiver
-
-    hostname = app.config["SMTP_HOST"]
-    port = app.config["SMTP_PORT"]
-
-    if app.config["SMTP_SSL"]:
-        s = SMTP_SSL(hostname, port)
-    else:
-        s = SMTP(hostname, port)
-
-    s.login(app.config["SMTP_USER"], app.config["SMTP_PASS"])
-    s.send_message(msg)
-    s.quit()
+    envelope.send(
+        hostname=app.config["SMTP_HOST"],
+        port=app.config["SMTP_PORT"],
+        login=app.config["SMTP_USER"],
+        tls=app.config["SMTP_SSL"]
+    )
 
 
 def authenticate(func):
