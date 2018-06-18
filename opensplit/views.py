@@ -16,23 +16,17 @@ class UserResource(Resource):
         return g.user.jsonify()
 
     def post(self):
-        # TODO: Handle existing usernames or emails
-        # TODO: Handle missing fields in body
         args = user_post_parser.parse_args()
-        user_mail = args["email"]
-        user_name = args["name"]
-        u = models.User(email=user_mail, name=user_name)
+        email = args["email"]
+        username = args["name"]
+        if models.User.query.filter_by(email=email).first():
+            return {"message": "email address exists"}, 409
+        if models.User.query.filter_by(name=username).first():
+            return {"message": "username exists"}, 409
+        u = models.User(email=email, name=username)
         db.session.add(u)
         db.session.commit()
         return {"message": "success"}, 201
-
-    def put(self):
-        # TODO: Update user
-        return "ok", 200
-
-    def delete(self):
-        # TODO: Delete user
-        return "ok", 200
 
 
 class SpecialUserResource(Resource):
@@ -47,6 +41,14 @@ class SpecialUserResource(Resource):
                     "email": user.email}
         else:
             return {"message": "No user with this ID"}, 404
+
+    def put(self, user_id):
+        # TODO: Update user
+        return "ok", 200
+
+    def delete(self, user_id):
+        # TODO: Delete user
+        return "ok", 200
 
 
 login_parser = reqparse.RequestParser()
