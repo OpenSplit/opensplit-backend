@@ -1,13 +1,14 @@
+---
 language: python
 python:
   - "3.6"
 
 env:
   global:
-  - IMAGE="opensplit/backend"
+    - IMAGE="opensplit/backend"
 
 services:
-    - docker
+  - docker
 
 install:
   - pip install pipenv flake8
@@ -20,6 +21,4 @@ script:
   - docker build -t $IMAGE .
 
 after_success:
-  - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
-  - docker push $IMAGE
-
+  - test $TRAVIS_BRANCH = "master" && docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD" && docker push $IMAGE
