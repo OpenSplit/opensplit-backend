@@ -19,7 +19,9 @@ class UserResource(Resource):
         # TODO: Handle existing usernames or emails
         # TODO: Handle missing fields in body
         args = user_post_parser.parse_args()
-        u = models.User(email=args["email"], name=args["name"])
+        user_mail = args["email"]
+        user_name = args["name"]
+        u = models.User(email=user_mail, name=user_name)
         db.session.add(u)
         db.session.commit()
         return {"message": "success"}, 201
@@ -34,7 +36,8 @@ class UserResource(Resource):
 
 
 class SpecialUserResource(Resource):
-    # @authenticate
+    method_decorators = [authenticate]
+
     def get(self, user_id):
         user = models.User.query.get(user_id)
         if user:
