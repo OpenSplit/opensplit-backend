@@ -83,7 +83,6 @@ class SessionResource(Resource):
         """
         user = models.User.verify_login_token(login_token)
         if user:
-            # return "valid token for userid {}".format(user.id)
             session_key = generate_random_string(length=50)
             s = models.Session(user=user, session_key=session_key)
             db.session.add(s)
@@ -192,7 +191,7 @@ class TransactionResource(Resource):
 
     def get(self, group_id):
         group = models.Group.query.get(group_id)
-        return [e.jsonify() for e in group.expenses],
+        return [expense.jsonify() for expense in group.expenses],
 
     def post(self, group_id):
         args = expense_post_parser.parse_args()
