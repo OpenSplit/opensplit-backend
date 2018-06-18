@@ -16,6 +16,11 @@ expense_assoc = Table('expense_assoc', db.Model.metadata,
                       Column('expense_id', Integer, ForeignKey('expense.id'))
                       )
 
+payment_assoc = Table('payment_assoc', db.Model.metadata,
+                      Column('receiver_id', Integer, ForeignKey('user.id')),
+                      Column('payment_id', Integer, ForeignKey('payment.id'))
+                      )
+
 
 class User(db.Model):
     __tablename__ = 'user'
@@ -31,6 +36,10 @@ class User(db.Model):
         "Group",
         secondary=group_assoc,
         back_populates="member")
+    payment = relationship(
+        "Payment",
+        secondary=payment_assoc,
+        back_populates="split_amongst")
 
     def generate_login_token(self, expiration=600):
         s = Serializer(app.config['SECRET_KEY'], expires_in=expiration)
@@ -70,6 +79,7 @@ class Group(db.Model):
     token = Column(String(40), nullable=False)
     owner = Column(Integer, ForeignKey('user.id'), nullable=False)
     expenses = relationship('Expense', backref='group', lazy=True)
+    payment = relationship('Payment', backref='group', lazy=True)
     member = relationship(
         "User",
         secondary=group_assoc,
@@ -116,3 +126,16 @@ class Expense(db.Model):
                 "group_id": self.group_id,
                 "paid_by": self.paid_by,
                 "split_amongst": [u.jsonify() for u in self.split_amongst]}
+
+
+class Payment(db.Model):
+    __tablename__ = 'payment'
+    id = Column(Integer, primary_key=True)
+    description = Column(String(120), nullable=False)
+    amount = Column(Numeric(10, 2), nullable=False)
+    group_id = Column(Integer, ForeignKey('group.id'))
+    paid_by = Column(Integer, ForeignKey('user.id'), nullable=False)
+    split_amongst = relationship(
+        "User",
+        secondary=payment_assoc,
+        back_populates="payment")
