@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 from opensplit import app, db, helper
-from sqlalchemy import Table, Column, Integer, String, ForeignKey, Numeric
+from sqlalchemy import Table, Column, Integer, String, Boolean, ForeignKey, Numeric
 from sqlalchemy.orm import relationship
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous import SignatureExpired, BadSignature
@@ -14,11 +14,6 @@ expense_assoc = Table('expense_assoc', db.Model.metadata,
                       Column('user_id', Integer, ForeignKey('user.id')),
                       Column('share', Numeric(10, 2)),
                       Column('expense_id', Integer, ForeignKey('expense.id'))
-                      )
-
-payment_assoc = Table('payment_assoc', db.Model.metadata,
-                      Column('receiver_id', Integer, ForeignKey('user.id')),
-                      Column('payment_id', Integer, ForeignKey('payment.id'))
                       )
 
 
@@ -36,10 +31,6 @@ class User(db.Model):
         "Group",
         secondary=group_assoc,
         back_populates="member")
-    payment = relationship(
-        "Payment",
-        secondary=payment_assoc,
-        back_populates="split_amongst")
 
     def generate_login_token(self, expiration=600):
         s = Serializer(app.config['SECRET_KEY'], expires_in=expiration)
@@ -112,6 +103,7 @@ class Expense(db.Model):
     id = Column(Integer, primary_key=True)
     description = Column(String(120), nullable=False)
     amount = Column(Numeric(10, 2), nullable=False)
+    is_payment = Column(Boolean, nullable=False, default=False)
     group_id = Column(Integer, ForeignKey('group.id'), nullable=False)
     paid_by = Column(Integer, ForeignKey('user.id'), nullable=False)
     split_amongst = relationship(
@@ -126,16 +118,3 @@ class Expense(db.Model):
                 "group_id": self.group_id,
                 "paid_by": self.paid_by,
                 "split_amongst": [u.jsonify() for u in self.split_amongst]}
-
-
-class Payment(db.Model):
-    __tablename__ = 'payment'
-    id = Column(Integer, primary_key=True)
-    description = Column(String(120), nullable=False)
-    amount = Column(Numeric(10, 2), nullable=False)
-    group_id = Column(Integer, ForeignKey('group.id'))
-    paid_by = Column(Integer, ForeignKey('user.id'), nullable=False)
-    split_amongst = relationship(
-        "User",
-        secondary=payment_assoc,
-        back_populates="payment")
