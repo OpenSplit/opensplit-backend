@@ -15,7 +15,7 @@ from opensplit import models, app
 def send_mail(receiver, subject, body):
     msg = EmailMessage()
     msg.add_header(
-        "Message-Id", "{uuid}@{domain}".format(
+        "Message-Id", "<{uuid}@{domain}>".format(
             uuid=random_uuid(),
             domain=app.config["SMTP_FROM"].split("@", 1)[1]
         )
