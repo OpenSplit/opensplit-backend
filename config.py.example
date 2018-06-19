@@ -18,3 +18,7 @@ SMTP_SSL = True
 SMTP_PORT = 465
 SMTP_HOST = "mail.foobar.com"
 SMTP_PASS = "evenmoresecret"
+
+# Sentry
+SENTRY_ENABLED = True
+SENTRY_URL = "https://foobarbaz@sentry.foobar.com"

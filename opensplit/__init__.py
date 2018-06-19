@@ -3,6 +3,7 @@ from flask import Flask
 from flask_restful import Api
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
+from raven.contrib.flask import Sentry
 
 app = Flask(__name__)
 app.config.from_object('config')
@@ -13,6 +14,9 @@ CORS(app)
 # Flask-RESTful
 api = Api(app)
 
+if (app.config["SENTRY_ENABLED"]):
+    # Send exceptions to Sentry
+    sentry = Sentry(app, dsn=app.config["SENTRY_URL"])
 
 @app.teardown_appcontext
 def shutdown_session(exception=None):
