@@ -9,6 +9,8 @@ else
 	echo "Unknown environment: "$1
 	exit 1
 fi
+
 docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
+docker tag $IMAGE:latest $IMAGE:$TAG
 docker push $IMAGE:$TAG
 
