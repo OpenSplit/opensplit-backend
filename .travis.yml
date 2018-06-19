@@ -21,4 +21,15 @@ script:
   - docker build -t $IMAGE .
 
 after_success:
-  - test $TRAVIS_BRANCH = "master" && docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD" && docker push $IMAGE
+
+deploy:
+  # deploy develop to the staging environment
+  - provider: script
+    script: bash scripts/deploy.sh staging
+    on:
+      branch: developmoent
+  # deploy master to production
+  - provider: script
+    script: bash scripts/deploy.sh production
+    on:
+      branch: master
