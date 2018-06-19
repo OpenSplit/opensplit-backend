@@ -204,6 +204,13 @@ class TransactionResource(Resource):
         db.session.add(e)
         db.session.commit()
 
+class PaymentResource(Resource):
+    method_decorators = [authenticate]
+
+    def get(self, group_id):
+        group = models.Group.query.get(group_id)
+        return [expense.jsonify() for expense in group.expenses if expense.is_payment]
+
 
 class CheckResource(Resource):
     method_decorators = [authenticate]
@@ -226,5 +233,7 @@ api.add_resource(SessionResource, '/session/<string:login_token>')
 api.add_resource(LoginResource, '/login/<string:email>')
 
 api.add_resource(TransactionResource, '/groups/<int:group_id>/transactions')
+
+api.add_resource(PaymentResource, '/groups/<int:group_id>/payments')
 
 api.add_resource(CheckResource, '/checktoken')
