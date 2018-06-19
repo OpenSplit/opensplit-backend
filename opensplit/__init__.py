@@ -16,7 +16,7 @@ api = Api(app)
 
 if (app.config["SENTRY_ENABLED"]):
     # Send exceptions to Sentry
-    sentry = Sentry(app, dsn=app.config["SENTRY_URL"])
+    sentry = Sentry(app)
 
 @app.teardown_appcontext
 def shutdown_session(exception=None):

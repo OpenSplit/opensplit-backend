@@ -21,4 +21,5 @@ SMTP_PASS = "evenmoresecret"
 
 # Sentry
 SENTRY_ENABLED = True
-SENTRY_URL = "https://foobarbaz@sentry.foobar.com"
+SENTRY_CONFIG = {"dsn": "https://foobarbaz@sentry.foobar.de",
+                 "environment": "staging"}
