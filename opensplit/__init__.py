@@ -18,6 +18,7 @@ if (app.config["SENTRY_ENABLED"]):
     # Send exceptions to Sentry
     sentry = Sentry(app)
 
+
 @app.teardown_appcontext
 def shutdown_session(exception=None):
     db.session.remove()
