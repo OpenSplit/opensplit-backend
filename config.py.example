@@ -20,6 +20,6 @@ SMTP_HOST = "mail.foobar.com"
 SMTP_PASS = "evenmoresecret"
 
 # Sentry
-SENTRY_ENABLED = True
+SENTRY_ENABLED = False
 SENTRY_CONFIG = {"dsn": "https://foobarbaz@sentry.foobar.de",
                  "environment": "staging"}
