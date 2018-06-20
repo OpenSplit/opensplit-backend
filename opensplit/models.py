@@ -70,7 +70,6 @@ class Group(db.Model):
     token = Column(String(40), nullable=False)
     owner = Column(Integer, ForeignKey('user.id'), nullable=False)
     expenses = relationship('Expense', backref='group', lazy=True)
-    payment = relationship('Payment', backref='group', lazy=True)
     member = relationship(
         "User",
         secondary=group_assoc,
