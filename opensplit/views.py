@@ -204,12 +204,32 @@ class TransactionResource(Resource):
         db.session.add(e)
         db.session.commit()
 
+
+payment_post_parser = reqparse.RequestParser()
+payment_post_parser.add_argument('amount', required=True)
+payment_post_parser.add_argument('paid_by', required=True)
+payment_post_parser.add_argument('split_amongst', action='append', required=True)
+
+
 class PaymentResource(Resource):
     method_decorators = [authenticate]
 
     def get(self, group_id):
         group = models.Group.query.get(group_id)
         return [expense.jsonify() for expense in group.expenses if expense.is_payment]
+
+    def post(self, group_id):
+        args = payment_post_parser.parse_args()
+        e = models.Expense(description="Payment",
+                           amount=args["amount"],
+                           group_id=group_id,
+                           paid_by=args["paid_by"],
+                           is_payment=True)
+        for user_id in args["split_amongst"]:
+            e.split_amongst.append(models.User.query.get(user_id))
+        db.session.add(e)
+        db.session.commit()
+        return {"message": "success"}
 
 
 class CheckResource(Resource):
