@@ -208,7 +208,7 @@ class TransactionResource(Resource):
 payment_post_parser = reqparse.RequestParser()
 payment_post_parser.add_argument('amount', required=True)
 payment_post_parser.add_argument('paid_by', required=True)
-payment_post_parser.add_argument('split_amongst', action='append', required=True)
+payment_post_parser.add_argument('receiver', required=True)
 
 
 class PaymentResource(Resource):
@@ -225,8 +225,8 @@ class PaymentResource(Resource):
                            group_id=group_id,
                            paid_by=args["paid_by"],
                            is_payment=True)
-        for user_id in args["split_amongst"]:
-            e.split_amongst.append(models.User.query.get(user_id))
+        e.split_amongst.append(models.User.query.get(args["receiver"]))
+        e.split_amongst.append(models.User.query.get(args["paid_by"]))
         db.session.add(e)
         db.session.commit()
         return {"message": "success"}
