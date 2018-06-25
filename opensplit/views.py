@@ -226,7 +226,6 @@ class PaymentResource(Resource):
                            paid_by=args["paid_by"],
                            is_payment=True)
         e.split_amongst.append(models.User.query.get(args["receiver"]))
-        e.split_amongst.append(models.User.query.get(args["paid_by"]))
         db.session.add(e)
         db.session.commit()
         return {"message": "success"}
