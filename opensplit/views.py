@@ -207,7 +207,7 @@ class TransactionResource(Resource):
 
 payment_post_parser = reqparse.RequestParser()
 payment_post_parser.add_argument('amount', required=True)
-payment_post_parser.add_argument('paid_by', required=True)
+payment_post_parser.add_argument('sender', required=True)
 payment_post_parser.add_argument('receiver', required=True)
 
 
@@ -220,12 +220,15 @@ class PaymentResource(Resource):
 
     def post(self, group_id):
         args = payment_post_parser.parse_args()
+        receiver_id = models.User.query.filter_by(name=args["receiver"]).first()
+        sender_id = models.User.query.filter_by(name=args["sender"]).first().id
+
         e = models.Expense(description="Payment",
                            amount=args["amount"],
                            group_id=group_id,
-                           paid_by=args["paid_by"],
+                           paid_by=sender_id,
                            is_payment=True)
-        e.split_amongst.append(models.User.query.get(args["receiver"]))
+        e.split_amongst.append(receiver_id)
         db.session.add(e)
         db.session.commit()
         return {"message": "success"}
