@@ -116,4 +116,5 @@ class Expense(db.Model):
                 "amount": float(self.amount),
                 "group_id": self.group_id,
                 "paid_by": self.paid_by,
+                "is_payment": self.is_payment,
                 "split_amongst": [u.jsonify() for u in self.split_amongst]}

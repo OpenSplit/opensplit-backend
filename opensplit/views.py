@@ -191,7 +191,7 @@ class TransactionResource(Resource):
 
     def get(self, group_id):
         group = models.Group.query.get(group_id)
-        return [expense.jsonify() for expense in group.expenses],
+        return [expense.jsonify() for expense in group.expenses if not expense.is_payment],
 
     def post(self, group_id):
         args = expense_post_parser.parse_args()
