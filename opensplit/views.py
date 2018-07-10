@@ -191,7 +191,7 @@ class TransactionResource(Resource):
 
     def get(self, group_id):
         group = models.Group.query.get(group_id)
-        return [expense.jsonify() for expense in group.expenses],
+        return [expense.jsonify() for expense in group.expenses if not expense.is_payment],
 
     def post(self, group_id):
         args = expense_post_parser.parse_args()
@@ -203,6 +203,35 @@ class TransactionResource(Resource):
             e.split_amongst.append(models.User.query.get(user_id))
         db.session.add(e)
         db.session.commit()
+
+
+payment_post_parser = reqparse.RequestParser()
+payment_post_parser.add_argument('amount', required=True)
+payment_post_parser.add_argument('sender', required=True)
+payment_post_parser.add_argument('receiver', required=True)
+
+
+class PaymentResource(Resource):
+    method_decorators = [authenticate]
+
+    def get(self, group_id):
+        group = models.Group.query.get(group_id)
+        return [expense.jsonify() for expense in group.expenses if expense.is_payment]
+
+    def post(self, group_id):
+        args = payment_post_parser.parse_args()
+        receiver_id = models.User.query.filter_by(name=args["receiver"]).first()
+        sender_id = models.User.query.filter_by(name=args["sender"]).first().id
+
+        e = models.Expense(description="Payment",
+                           amount=args["amount"],
+                           group_id=group_id,
+                           paid_by=sender_id,
+                           is_payment=True)
+        e.split_amongst.append(receiver_id)
+        db.session.add(e)
+        db.session.commit()
+        return {"message": "success"}
 
 
 class CheckResource(Resource):
@@ -226,5 +255,7 @@ api.add_resource(SessionResource, '/session/<string:login_token>')
 api.add_resource(LoginResource, '/login/<string:email>')
 
 api.add_resource(TransactionResource, '/groups/<int:group_id>/transactions')
+
+api.add_resource(PaymentResource, '/groups/<int:group_id>/payments')
 
 api.add_resource(CheckResource, '/checktoken')
