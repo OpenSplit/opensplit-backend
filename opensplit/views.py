@@ -195,7 +195,7 @@ class TransactionResource(Resource):
         pagesize = 10
         if group:
             expenses = [expense.jsonify() for expense in group.expenses if not expense.is_payment]
-            i = pagination*pagesize
+            i = page*pagesize
             return sorted(expenses, key=lambda k: k["date"])[i: i+pagesize]
         else:
             return {"message": "groupid doesn't exists"}, 404
