@@ -4,6 +4,7 @@ from sqlalchemy import Table, Column, Integer, String, Boolean, ForeignKey, Nume
 from sqlalchemy.orm import relationship
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous import SignatureExpired, BadSignature
+from datetime import datetime
 
 group_assoc = Table('group_assoc', db.Model.metadata,
                     Column('user_id', Integer, ForeignKey('user.id')),
@@ -102,6 +103,7 @@ class Expense(db.Model):
     id = Column(Integer, primary_key=True)
     description = Column(String(120), nullable=False)
     amount = Column(Integer, nullable=False)
+    date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     is_payment = Column(Boolean, nullable=False, default=False)
     group_id = Column(Integer, ForeignKey('group.id'), nullable=False)
     paid_by = Column(Integer, ForeignKey('user.id'), nullable=False)
@@ -114,7 +116,8 @@ class Expense(db.Model):
         return {"id": self.id,
                 "description": self.description,
                 "amount": float(self.amount/100),
+                "date": str(self.date),
                 "group_id": self.group_id,
-                "paid_by": self.paid_by,
+                "paid_by": User.query.get(self.paid_by).jsonify(), 
                 "is_payment": self.is_payment,
                 "split_amongst": [u.jsonify() for u in self.split_amongst]}
