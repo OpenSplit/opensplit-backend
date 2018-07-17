@@ -227,15 +227,19 @@ class PaymentResource(Resource):
 
     def post(self, group_id):
         args = payment_post_parser.parse_args()
-        receiver_id = models.User.query.filter_by(name=args["receiver"]).first()
-        sender_id = models.User.query.filter_by(name=args["sender"]).first().id
+        group = models.Group.query.get(group_id)
+        receiver = models.User.query.get(args["receiver"])
+        sender = models.User.query.get(args["sender"])
+
+        if group and receiver and sender:
+            return {"message": "Something with your data is wrong"}, 400
 
         e = models.Expense(description="Payment",
                            amount=args["amount"],
-                           group_id=group_id,
-                           paid_by=sender_id,
+                           group_id=group.id,
+                           paid_by=sender.id,
                            is_payment=True)
-        e.split_amongst.append(receiver_id)
+        e.split_amongst.append(receiver)
         db.session.add(e)
         db.session.commit()
         return {"message": "success"}
