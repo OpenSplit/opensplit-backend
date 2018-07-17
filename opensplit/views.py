@@ -3,6 +3,7 @@ from flask_restful import Resource, reqparse, abort
 from opensplit import api, db, app, models
 from flask import g
 from opensplit.helper import generate_random_string, send_mail, authenticate
+from pprint import pprint
 
 user_post_parser = reqparse.RequestParser()
 user_post_parser.add_argument('email')
@@ -189,10 +190,13 @@ expense_post_parser.add_argument('split_amongst', action='append', required=True
 class TransactionResource(Resource):
     method_decorators = [authenticate]
 
-    def get(self, group_id):
+    def get(self, group_id, page=0):
         group = models.Group.query.get(group_id)
+        pagesize = 10
         if group:
-            return [expense.jsonify() for expense in group.expenses if not expense.is_payment],
+            expenses = [expense.jsonify() for expense in group.expenses if not expense.is_payment]
+            i = pagination*pagesize
+            return sorted(expenses, key=lambda k: k["date"])[i: i+pagesize]
         else:
             return {"message": "groupid doesn't exists"}, 404
 
@@ -265,7 +269,7 @@ api.add_resource(GroupJoinResource, '/groups/join/<string:token>')
 api.add_resource(SessionResource, '/session/<string:login_token>')
 api.add_resource(LoginResource, '/login/<string:email>')
 
-api.add_resource(TransactionResource, '/groups/<int:group_id>/transactions')
+api.add_resource(TransactionResource, '/groups/<int:group_id>/transactions','/groups/<int:group_id>/transactions/<int:page>')
 
 api.add_resource(PaymentResource, '/groups/<int:group_id>/payments')
 
