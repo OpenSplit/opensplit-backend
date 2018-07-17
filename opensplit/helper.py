@@ -109,7 +109,7 @@ def calculate_debts(group_id):
     # Generate debts between users
     for exp in group.expenses:
         payer = models.User.query.get(exp.paid_by)
-        distribution = split_amongst(int(exp.amount*100), [u.name for u in exp.split_amongst])
+        distribution = split_amongst(int(exp.amount), [u.name for u in exp.split_amongst])
 
         print("paid: {} -> shares: {}".format(payer.name, distribution))
         for user, amount in distribution:
@@ -138,9 +138,9 @@ def calculate_debts(group_id):
             if value > 0:
 
                 # Debts for userA, is credit for userB
-                debts_clean[userA]["total"] -= value/100
-                debts_clean[userB]["total"] += value/100
+                debts_clean[userA]["total"] -= value
+                debts_clean[userB]["total"] += value
 
-                debts_clean[userA]["owes"].append((userB, value/100))
+                debts_clean[userA]["owes"].append((userB, value))
 
     return debts_clean
