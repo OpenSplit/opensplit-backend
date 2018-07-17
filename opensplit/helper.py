@@ -144,3 +144,6 @@ def calculate_debts(group_id):
                 debts_clean[userB]["gets"].append((userA, value))
 
     return debts_clean
+
+def generate_invite_link(group_token):
+    return "{}/invite/{}".format(app.config["BASE_URL"], group_token)

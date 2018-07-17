@@ -84,7 +84,7 @@ class Group(db.Model):
     def jsonify(self):
         group_data = {"id": self.id,
                       "name": self.name,
-                      "token": self.token,
+                      "token": helper.generate_invite_link(self.token),
                       "owner": self.owner,
                       "member": [u.jsonify() for u in self.member]}
 
