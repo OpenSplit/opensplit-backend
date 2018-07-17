@@ -91,8 +91,7 @@ class OpenSplitTestCase(unittest.TestCase):
         r = self.app.get('/groups/{}/transactions'.format(group_id),
                          headers={"Authorization": session_key})
         data = r.json
-        # Why is this a list of lists?
-        testexpense = data[0][0]
+        testexpense = data[0]
         self.assertEqual(len(data), 1)
         self.assertEqual(testexpense["amount"], EXPENSE_AMOUNT)
 
