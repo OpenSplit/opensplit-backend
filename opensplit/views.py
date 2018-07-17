@@ -231,7 +231,7 @@ class PaymentResource(Resource):
         receiver = models.User.query.get(args["receiver"])
         sender = models.User.query.get(args["sender"])
 
-        if group and receiver and sender:
+        if not (group or receiver or sender):
             return {"message": "Something with your data is wrong"}, 400
 
         e = models.Expense(description="Payment",
