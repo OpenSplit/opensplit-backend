@@ -155,10 +155,18 @@ class GroupTokenResource(Resource):
 class GroupJoinResource(Resource):
     method_decorators = [authenticate]
 
+    def get(self, token):
+        group = models.Group.query.filter_by(token=token).first()
+        if not group:
+            return {"message": "No group with this token"}, 404
+        else:
+            return {"name": group.name,
+                    "is_member": g.user in group.member }
+
     def post(self, token):
         group = models.Group.query.filter_by(token=token).first()
         if not group:
-            return {"message": "No group with this ID or wrong token"}, 404
+            return {"message": "No group with this token"}, 404
         else:
             group.member.append(g.user)
             db.session.add(group)
