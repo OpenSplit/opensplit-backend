@@ -44,3 +44,5 @@ db.session.add(e2)
 db.session.add(e3)
 db.session.add(e4)
 db.session.commit()
+
+print("Done")
