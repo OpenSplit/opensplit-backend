@@ -191,18 +191,25 @@ class TransactionResource(Resource):
 
     def get(self, group_id):
         group = models.Group.query.get(group_id)
-        return [expense.jsonify() for expense in group.expenses if not expense.is_payment],
+        if group:
+            return [expense.jsonify() for expense in group.expenses if not expense.is_payment],
+        else:
+            return {"message": "groupid doesn't exists"}, 404
 
     def post(self, group_id):
-        args = expense_post_parser.parse_args()
-        e = models.Expense(description=args["description"],
-                           amount=args["amount"],
-                           group_id=group_id,
-                           paid_by=args["paid_by"])
-        for user_id in args["split_amongst"]:
-            e.split_amongst.append(models.User.query.get(user_id))
-        db.session.add(e)
-        db.session.commit()
+        group = models.Group.query.get(group_id)
+        if group:
+            args = expense_post_parser.parse_args()
+            e = models.Expense(description=args["description"],
+                            amount=float(args["amount"])*100,
+                            group_id=group_id,
+                            paid_by=args["paid_by"])
+            for user_id in args["split_amongst"]:
+                e.split_amongst.append(models.User.query.get(user_id))
+            db.session.add(e)
+            db.session.commit()
+        else:
+            return {"message": "groupid doesn't exists"}, 404
 
 
 payment_post_parser = reqparse.RequestParser()

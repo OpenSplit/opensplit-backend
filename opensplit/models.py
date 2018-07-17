@@ -101,7 +101,7 @@ class Expense(db.Model):
     __tablename__ = 'expense'
     id = Column(Integer, primary_key=True)
     description = Column(String(120), nullable=False)
-    amount = Column(Numeric(10, 2), nullable=False)
+    amount = Column(Integer, nullable=False)
     is_payment = Column(Boolean, nullable=False, default=False)
     group_id = Column(Integer, ForeignKey('group.id'), nullable=False)
     paid_by = Column(Integer, ForeignKey('user.id'), nullable=False)
@@ -113,7 +113,7 @@ class Expense(db.Model):
     def jsonify(self):
         return {"id": self.id,
                 "description": self.description,
-                "amount": float(self.amount),
+                "amount": float(self.amount/100),
                 "group_id": self.group_id,
                 "paid_by": self.paid_by,
                 "is_payment": self.is_payment,
