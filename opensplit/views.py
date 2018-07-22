@@ -3,7 +3,6 @@ from flask_restful import Resource, reqparse, abort
 from opensplit import api, db, app, models
 from flask import g
 from opensplit.helper import generate_random_string, send_mail, authenticate
-from pprint import pprint
 
 user_post_parser = reqparse.RequestParser()
 user_post_parser.add_argument('email')
@@ -161,7 +160,7 @@ class GroupJoinResource(Resource):
             return {"message": "No group with this token"}, 404
         else:
             return {"name": group.name,
-                    "is_member": g.user in group.member }
+                    "is_member": g.user in group.member}
 
     def post(self, token):
         group = models.Group.query.filter_by(token=token).first()
@@ -192,7 +191,8 @@ expense_post_parser = reqparse.RequestParser()
 expense_post_parser.add_argument('description', required=True)
 expense_post_parser.add_argument('amount', required=True)
 expense_post_parser.add_argument('paid_by', required=True)
-expense_post_parser.add_argument('split_amongst', action='append', required=True)
+expense_post_parser.add_argument(
+    'split_amongst', action='append', required=True)
 
 
 class TransactionResource(Resource):
@@ -202,7 +202,8 @@ class TransactionResource(Resource):
         group = models.Group.query.get(group_id)
         pagesize = 10
         if group:
-            expenses = [expense.jsonify() for expense in group.expenses if not expense.is_payment]
+            expenses = [expense.jsonify()
+                        for expense in group.expenses if not expense.is_payment]
             i = page*pagesize
             return sorted(expenses, key=lambda k: k["date"])[i: i+pagesize]
         else:
@@ -213,9 +214,9 @@ class TransactionResource(Resource):
         if group:
             args = expense_post_parser.parse_args()
             e = models.Expense(description=args["description"],
-                            amount=float(args["amount"])*100,
-                            group_id=group_id,
-                            paid_by=args["paid_by"])
+                               amount=float(args["amount"])*100,
+                               group_id=group_id,
+                               paid_by=args["paid_by"])
             for user_id in args["split_amongst"]:
                 e.split_amongst.append(models.User.query.get(user_id))
             db.session.add(e)
@@ -277,7 +278,9 @@ api.add_resource(GroupJoinResource, '/groups/join/<string:token>')
 api.add_resource(SessionResource, '/session/<string:login_token>')
 api.add_resource(LoginResource, '/login/<string:email>')
 
-api.add_resource(TransactionResource, '/groups/<int:group_id>/transactions','/groups/<int:group_id>/transactions/<int:page>')
+api.add_resource(TransactionResource,
+                 '/groups/<int:group_id>/transactions',
+                 '/groups/<int:group_id>/transactions/<int:page>')
 
 api.add_resource(PaymentResource, '/groups/<int:group_id>/payments')
 
