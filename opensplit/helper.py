@@ -137,11 +137,11 @@ def calculate_debts(group_id):
         for userB, value in userdebts.items():
             if value > 0:
                 # Debts for userA, is credit for userB
-                debts_clean[userA]["total"] -= value
-                debts_clean[userB]["total"] += value
+                debts_clean[userA]["total"] -= value/100
+                debts_clean[userB]["total"] += value/100
 
-                debts_clean[userA]["owes"].append((userB, value))
-                debts_clean[userB]["gets"].append((userA, value))
+                debts_clean[userA]["owes"].append((userB, value/100))
+                debts_clean[userB]["gets"].append((userA, value/100))
 
     return debts_clean
 
