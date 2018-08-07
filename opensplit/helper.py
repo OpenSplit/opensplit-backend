@@ -38,6 +38,7 @@ def send_mail(receiver, subject, body):
     conn.send_message(msg)
     conn.quit()
 
+
 def authenticate(func):
     """
     Wrapper which checks for valid "Authorization" Headers in a request
