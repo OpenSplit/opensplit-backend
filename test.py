@@ -13,6 +13,7 @@ TEST_EXPENSE2 = {"DESCRIPTION": "Testexpense", "AMOUNT": 42, "PAID_BY": 1, "SPLI
 TEST_EXPENSE3 = {"DESCRIPTION": "Testexpense", "AMOUNT": 12, "PAID_BY": 2, "SPLIT_AMONGST": [1, 2]}
 TEST_EXPENSE4 = {"DESCRIPTION": "Testexpense", "AMOUNT": 23, "PAID_BY": 3, "SPLIT_AMONGST": [1, 2, 3]}
 
+
 class OpenSplitTestCase(unittest.TestCase):
 
     def setUp(self):
