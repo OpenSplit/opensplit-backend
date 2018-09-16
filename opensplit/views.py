@@ -248,7 +248,7 @@ class PaymentResource(Resource):
             return {"message": "Something with your data is wrong"}, 400
 
         e = models.Expense(description="Payment",
-                           amount=args["amount"],
+                           amount=float(args["amount"])*100,
                            group_id=group.id,
                            paid_by=sender.id,
                            is_payment=True)

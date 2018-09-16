@@ -4,11 +4,14 @@ import opensplit
 import unittest
 import tempfile
 
-EMAIL_ADDR = "lol@nope.com"
-USER_NAME = "John Doe"
+TEST_USER1 = {"EMAIL_ADDR": "lol@nope.com", "NAME": "John Doe"}
+TEST_USER2 = {"EMAIL_ADDR": "yes@nope.com", "NAME": "Mark Ham"}
+TEST_USER3 = {"EMAIL_ADDR": "noe@nope.com", "NAME": "Luke Sky"}
 GROUP_NAME = "Testgroup"
-EXPENSE_DESCRIPTION = "Testexpense"
-EXPENSE_AMOUNT = 13.37
+TEST_EXPENSE1 = {"DESCRIPTION": "Testexpense", "AMOUNT": 13.37, "PAID_BY": 1, "SPLIT_AMONGST": [1]}
+TEST_EXPENSE2 = {"DESCRIPTION": "Testexpense", "AMOUNT": 42, "PAID_BY": 1, "SPLIT_AMONGST": [1, 2]}
+TEST_EXPENSE3 = {"DESCRIPTION": "Testexpense", "AMOUNT": 12, "PAID_BY": 2, "SPLIT_AMONGST": [1, 2]}
+TEST_EXPENSE4 = {"DESCRIPTION": "Testexpense", "AMOUNT": 23, "PAID_BY": 3, "SPLIT_AMONGST": [1, 2, 3]}
 
 
 class OpenSplitTestCase(unittest.TestCase):
@@ -25,19 +28,19 @@ class OpenSplitTestCase(unittest.TestCase):
     def tearDown(self):
         os.close(self.db_filehandle)
 
-    def create_user(self):
+    def create_user(self, user):
         return self.app.post('/users', data=dict(
-            email=EMAIL_ADDR,
-            name=USER_NAME))
+            email=user["EMAIL_ADDR"],
+            name=user["NAME"]))
 
     def test_create_user(self):
-        r = self.create_user()
+        r = self.create_user(TEST_USER1)
         self.assertEqual(r.status, "201 CREATED")
 
     def test_user_login(self):
-        self.create_user()
+        self.create_user(TEST_USER1)
 
-        rv = self.app.get('/login/{}'.format(EMAIL_ADDR))
+        rv = self.app.get('/login/{}'.format(TEST_USER1["EMAIL_ADDR"]))
         self.assertEqual(rv.status, "200 OK")
 
         # Generate our own login token because we won't receive emails
@@ -48,8 +51,8 @@ class OpenSplitTestCase(unittest.TestCase):
         self.assertEqual(rv.status, "200 OK")
         self.assertIsNotNone(rv.json.get("session_key"))
 
-    def login_user(self):
-        self.create_user()
+    def login_user(self, user):
+        self.create_user(user)
 
         # Generate our own login token because we won't receive emails
         user = opensplit.db.session.query(opensplit.models.User).first()
@@ -59,32 +62,49 @@ class OpenSplitTestCase(unittest.TestCase):
         return rv.json.get("session_key")
 
     def create_group(self, session_key):
-        self.app.post('/groups',
-                      data={"name": GROUP_NAME},
-                      headers={"Authorization": session_key})
+        r = self.app.post('/groups',
+                          data={"name": GROUP_NAME},
+                          headers={"Authorization": session_key})
+        self.assertEqual(r.status, "200 OK")
         return opensplit.db.session.query(opensplit.models.Group).first().id
 
+    def join_group(self, group_token, session_key):
+        r = self.app.post('/groups/join/{}'.format(group_token),
+                          headers={"Authorization": session_key})
+        self.assertEqual(r.status, "200 OK")
+        return r
+
+    def get_group_token(self, group_id, session_key):
+        r = self.app.get('/groups/{}/generateToken'.format(group_id),
+                         headers={"Authorization": session_key})
+        self.assertEqual(r.status, "200 OK")
+        return r.json
+
     def test_session_key(self):
-        session_key = self.login_user()
+        session_key = self.login_user(TEST_USER1)
 
         r = self.app.get('/users',
                          headers={"Authorization": session_key})
 
         self.assertEqual(r.status, "200 OK")
-        self.assertEqual(r.json.get("name"), USER_NAME)
-        self.assertEqual(r.json.get("email"), EMAIL_ADDR)
+        self.assertEqual(r.json.get("name"), TEST_USER1["NAME"])
+        self.assertEqual(r.json.get("email"), TEST_USER1["EMAIL_ADDR"])
 
-    def test_add_and_get_expanse(self):
-        session_key = self.login_user()
-        group_id = self.create_group(session_key)
-
+    def create_expense(self, group_id, session_key, expense):
         r = self.app.post('/groups/{}/transactions'.format(group_id),
-                          data={"description": EXPENSE_DESCRIPTION,
-                                "amount": EXPENSE_AMOUNT,
+                          data={"description": expense["DESCRIPTION"],
+                                "amount": expense["AMOUNT"],
                                 "group_id": group_id,
-                                "paid_by": 1,
-                                "split_amongst": [1]},
+                                "paid_by": expense["PAID_BY"],
+                                "split_amongst": expense["SPLIT_AMONGST"]},
                           headers={"Authorization": session_key})
+        self.assertEqual(r.status, "200 OK")
+        return r
+
+    def test_add_and_get_expense(self):
+        session_key = self.login_user(TEST_USER1)
+        group_id = self.create_group(session_key)
+        r = self.create_expense(group_id, session_key, TEST_EXPENSE1)
 
         self.assertEqual(r.status, "200 OK")
 
@@ -93,7 +113,26 @@ class OpenSplitTestCase(unittest.TestCase):
         data = r.json
         testexpense = data[0]
         self.assertEqual(len(data), 1)
-        self.assertEqual(testexpense["amount"], EXPENSE_AMOUNT)
+        self.assertEqual(testexpense["amount"], TEST_EXPENSE1["AMOUNT"])
+        self.assertEqual(testexpense["description"], TEST_EXPENSE1["DESCRIPTION"])
+        self.assertEqual(testexpense["group_id"], group_id)
+        self.assertEqual(len(testexpense["split_amongst"]), 1)
+
+    """ TODO: Join group currently does not add the second user currently
+    def test_calculate_expense(self):
+        # Create two users
+        session_key_u1 = self.login_user(TEST_USER1)
+        session_key_u2 = self.login_user(TEST_USER2)
+        # Create group and receive token
+        group_id = self.create_group(session_key_u1)
+        group_token = self.get_group_token(group_id, session_key_u1)
+        # Join group, create expenses and test for success
+        self.join_group(group_token, session_key_u2)
+        self.create_expense(group_id, session_key_u1, TEST_EXPENSE2)
+        self.create_expense(group_id, session_key_u2, TEST_EXPENSE3)
+        r = self.app.get('/groups/{}'.format(group_id),
+                         headers={"Authorization": session_key_u2})
+        print(r.json)"""
 
 
 if __name__ == '__main__':
