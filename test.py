@@ -118,22 +118,5 @@ class OpenSplitTestCase(unittest.TestCase):
         self.assertEqual(testexpense["group_id"], group_id)
         self.assertEqual(len(testexpense["split_amongst"]), 1)
 
-    """ TODO: Join group currently does not add the second user currently
-    def test_calculate_expense(self):
-        # Create two users
-        session_key_u1 = self.login_user(TEST_USER1)
-        session_key_u2 = self.login_user(TEST_USER2)
-        # Create group and receive token
-        group_id = self.create_group(session_key_u1)
-        group_token = self.get_group_token(group_id, session_key_u1)
-        # Join group, create expenses and test for success
-        self.join_group(group_token, session_key_u2)
-        self.create_expense(group_id, session_key_u1, TEST_EXPENSE2)
-        self.create_expense(group_id, session_key_u2, TEST_EXPENSE3)
-        r = self.app.get('/groups/{}'.format(group_id),
-                         headers={"Authorization": session_key_u2})
-        print(r.json)"""
-
-
 if __name__ == '__main__':
     unittest.main()
