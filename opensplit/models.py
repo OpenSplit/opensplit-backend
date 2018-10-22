@@ -121,3 +121,17 @@ class Expense(db.Model):
                 "paid_by": User.query.get(self.paid_by).jsonify(),
                 "is_payment": self.is_payment,
                 "split_amongst": [u.jsonify() for u in self.split_amongst]}
+
+
+class History(db.Model):
+    __tablename__ = 'history'
+    id = Column(Integer, primary_key=True)
+    date = Column(DateTime, nullable=False, default=datetime.utcnow)
+    event_type = Column(String(60), nullable=False)
+    evend_id = Column(Integer, nullable=False)
+
+    def jsonify(self):
+        return {"id": self.id,
+                "date": str(self.date),
+                "event_type": self.event_type,
+                "event_id": self.event_id}
