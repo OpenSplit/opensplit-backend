@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 from opensplit import app, db, helper
-from sqlalchemy import Table, Column, Integer, String, Boolean, ForeignKey, Numeric
+from sqlalchemy import Table, Column, Integer, String, Boolean, ForeignKey, Numeric, DateTime
 from sqlalchemy.orm import relationship
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous import SignatureExpired, BadSignature
@@ -103,7 +103,7 @@ class Expense(db.Model):
     id = Column(Integer, primary_key=True)
     description = Column(String(120), nullable=False)
     amount = Column(Integer, nullable=False)
-    date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    date = Column(DateTime, nullable=False, default=datetime.utcnow)
     is_payment = Column(Boolean, nullable=False, default=False)
     group_id = Column(Integer, ForeignKey('group.id'), nullable=False)
     paid_by = Column(Integer, ForeignKey('user.id'), nullable=False)

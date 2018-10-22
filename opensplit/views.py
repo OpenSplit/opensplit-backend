@@ -23,6 +23,8 @@ class UserResource(Resource):
             return {"message": "email address exists"}, 409
         if models.User.query.filter_by(name=username).first():
             return {"message": "username exists"}, 409
+        if email is None or username is None:
+            return {"message": "POST parameter must not be empty"}, 400
         u = models.User(email=email, name=username)
         db.session.add(u)
         db.session.commit()
