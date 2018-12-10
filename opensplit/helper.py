@@ -52,10 +52,8 @@ def authenticate(func):
                 g.user = models.User.query.filter_by(id=session.user_id).one()
                 return func(*args, **kwargs)
             else:
-                print("can't find a valid session for this key")
                 abort(401)
         else:
-            print("No auth header")
             abort(401)
     return wrapper
 
@@ -111,7 +109,6 @@ def calculate_debts(group_id):
         payer = models.User.query.get(exp.paid_by)
         distribution = split_amongst(int(exp.amount), [u.name for u in exp.split_amongst])
 
-        print("paid: {} -> shares: {}".format(payer.name, distribution))
         for user, amount in distribution:
             if user == payer.name:
                 continue
