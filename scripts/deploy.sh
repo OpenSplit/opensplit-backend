@@ -3,4 +3,4 @@ set -eu
 
 STAGE="$1"
 
-ssh travis@"$APP_SERVER" "./test.sh $STAGE"
+ssh travis@"$APP_SERVER" "./update-backend.sh $STAGE"
