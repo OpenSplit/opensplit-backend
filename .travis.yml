@@ -6,6 +6,9 @@ python:
 services:
   - docker
 
+git:
+  depth: false
+
 env:
   global:
     - IMAGE="opensplit/backend"
