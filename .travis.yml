@@ -20,6 +20,7 @@ install:
   - pipenv install
   - cp config.py.example config.py
   - echo "$SSH_FINGERPRINT" >> $HOME/.ssh/known_hosts
+  - if [ ${TRAVIS_BRANCH} == master ] ; then IMAGE_TAG=stable; else IMAGE_TAG=development; fi
 
 script:
   - flake8 .
@@ -27,7 +28,6 @@ script:
   - docker build -t $IMAGE:$IMAGE_TAG .
 
 after_success:
-  - if [ ${TRAVIS_BRANCH} == master ] ; then IMAGE_TAG=stable; else IMAGE_TAG=development; fi
   - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
   - docker push $IMAGE:$IMAGE_TAG
 
