@@ -18,28 +18,35 @@ branches:
 install:
   - pip install pipenv flake8
   - pipenv install
+  - cp config.py.example config.py
+  - echo "$SSH_FINGERPRINT" >> $HOME/.ssh/known_hosts
 
 script:
-  - cp config.py.example config.py
   - flake8 .
   - ./test.py
+  - docker build -t $IMAGE:$IMAGE_TAG .
 
 after_success:
   - if [ ${TRAVIS_BRANCH} == master ] ; then IMAGE_TAG=stable; else IMAGE_TAG=development; fi
-  - docker build -t $IMAGE:$IMAGE_TAG .
   - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
   - docker push $IMAGE:$IMAGE_TAG
 
-#deploy:
-#  # deploy develop to the staging environment
-#  - provider: script
-#    script: bash scripts/deploy.sh staging
-#    on:
-#      branch: development
-#
-#  # deploy master to production
-#  - provider: script
-#    script: bash scripts/deploy.sh production
-#    on:
-#      branch: master
-#
+before_deploy:
+  - openssl aes-256-cbc -K $encrypted_5b8882afa87d_key -iv $encrypted_5b8882afa87d_iv -in deploy_key.enc -out /tmp/deploy_key -d
+  - eval "$(ssh-agent -s)"  
+  - chmod 600 /tmp/deploy_key
+  - ssh-add /tmp/deploy_key
+
+deploy:
+ # Login to staging and update containers
+ - provider: script
+   script: bash scripts/deploy.sh staging
+   on:
+     branch: development
+
+ # Login to prod and update containers
+ - provider: script
+   script: bash scripts/deploy.sh production
+   on:
+     branch: master
+

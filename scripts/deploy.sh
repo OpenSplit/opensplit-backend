@@ -1,16 +1,6 @@
 #! /usr/bin/env bash
 set -eu
 
-if [ "$1" == "production" ]; then
-	TAG="latest"
-elif [ "$1" == "staging" ]; then
-	TAG="development"
-else
-	echo "Unknown environment: "$1
-	exit 1
-fi
+STAGE="$1"
 
-docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
-docker tag $IMAGE:latest $IMAGE:$TAG
-docker push $IMAGE:$TAG
-
+ssh travis@"$APP_SERVER" "./test.sh $STAGE"
