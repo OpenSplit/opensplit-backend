@@ -75,6 +75,7 @@ class LoginResource(Resource):
         else:
             abort(500)
 
+
 class LogoutResource(Resource):
     method_decorators = [authenticate]
 
