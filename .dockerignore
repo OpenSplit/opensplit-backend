@@ -1,0 +1,11 @@
+.*
+Dockerfile
+LICENSE
+README.md
+config.py*
+deploy_key.enc
+init_testdata.py
+docs/
+scripts
+test.py
+var/opensplit.db
