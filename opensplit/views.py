@@ -70,7 +70,7 @@ class LoginResource(Resource):
 
                 send_mail(user.email, "New login token", body)
             else:
-                print("Login-Token for {}: {}".format(user.name, token))
+                print("Login-Token for {}:\n{}".format(user.name, token))
             return {"message": "success"}
         else:
             abort(500)
