@@ -109,6 +109,13 @@ class GroupResource(Resource):
         group.member.append(g.user)
         db.session.add(group)
         db.session.commit()
+
+        create_event = models.Event(group_id=group.id, event_type="CREATED")
+        join_event = models.Event(
+            group_id=group.id, event_type="USER_JOINED", user_id=g.user.id)
+        db.session.add(create_event)
+        db.session.add(join_event)
+        db.session.commit()
         return {"message": "success"}
 
 
@@ -202,8 +209,7 @@ class TransactionResource(Resource):
         group = models.Group.query.get(group_id)
         pagesize = 10
         if group:
-            expenses = [expense.jsonify()
-                        for expense in group.expenses if not expense.is_payment]
+            expenses = [expense.jsonify() for expense in group.expenses if not expense.is_payment]
             i = page*pagesize
             return sorted(expenses, key=lambda k: k["date"], reverse=True)[i: i+pagesize]
         else:
@@ -221,6 +227,22 @@ class TransactionResource(Resource):
                 e.split_amongst.append(models.User.query.get(user_id))
             db.session.add(e)
             db.session.commit()
+
+            event = models.Event(group_id=group.id, event_type="EXPENSE_CREATED", expense_id=e.id)
+            db.session.add(event)
+            db.session.commit()
+        else:
+            return {"message": "groupid doesn't exists"}, 404
+
+
+class HistoryResource(Resource):
+    method_decorators = [authenticate]
+
+    def get(self, group_id, page=0):
+        history = models.Event.query.filter_by(group_id=group_id).all()
+        if history:
+            history = [h.jsonify() for h in history]
+            return sorted(history, key=lambda k: k["date"], reverse=True)
         else:
             return {"message": "groupid doesn't exists"}, 404
 
@@ -255,6 +277,10 @@ class PaymentResource(Resource):
         e.split_amongst.append(receiver)
         db.session.add(e)
         db.session.commit()
+
+        event = models.Event(group_id=group.id, event_type="PAYMENT_CREATED", expense_id=e.id)
+        db.session.add(event)
+        db.session.commit()
         return {"message": "success"}
 
 
@@ -281,6 +307,8 @@ api.add_resource(LoginResource, '/login/<string:email>')
 api.add_resource(TransactionResource,
                  '/groups/<int:group_id>/transactions',
                  '/groups/<int:group_id>/transactions/<int:page>')
+
+api.add_resource(HistoryResource, '/groups/<int:group_id>/history')
 
 api.add_resource(PaymentResource, '/groups/<int:group_id>/payments')
 

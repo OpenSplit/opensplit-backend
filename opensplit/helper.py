@@ -11,6 +11,13 @@ from uuid import uuid4 as random_uuid
 
 from opensplit import models, app
 
+ALL_EVENTS = ["CREATED", "USER_JOINED", "USER_LEFT", "EXPENSE_CREATED",
+              "EXPENSE_DELETED", "PAYMENT_CREATED", "PAYMENT_DELETED"]
+
+
+def is_valid_event_type(event_type):
+    return event_type in ALL_EVENTS
+
 
 def send_mail(receiver, subject, body):
     msg = EmailMessage()
