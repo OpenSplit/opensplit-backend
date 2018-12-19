@@ -1,3 +1,4 @@
+#! /bin/sh
 export FLASK_APP="run.py"
 
 # Apply latest database migrations
