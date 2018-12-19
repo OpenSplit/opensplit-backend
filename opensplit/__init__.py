@@ -3,11 +3,13 @@ from flask import Flask
 from flask_restful import Api
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 from raven.contrib.flask import Sentry
 
 app = Flask(__name__)
 app.config.from_object('config')
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 CORS(app)
 

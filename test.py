@@ -118,5 +118,6 @@ class OpenSplitTestCase(unittest.TestCase):
         self.assertEqual(testexpense["group_id"], group_id)
         self.assertEqual(len(testexpense["split_amongst"]), 1)
 
+
 if __name__ == '__main__':
     unittest.main()

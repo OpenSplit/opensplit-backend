@@ -5,8 +5,8 @@ from flask import g
 from opensplit.helper import generate_random_string, send_mail, authenticate
 
 user_post_parser = reqparse.RequestParser()
-user_post_parser.add_argument('email')
-user_post_parser.add_argument('name')
+user_post_parser.add_argument('email', type=str, required=True)
+user_post_parser.add_argument('name', type=str, required=True)
 
 
 class UserResource(Resource):
@@ -23,8 +23,6 @@ class UserResource(Resource):
             return {"message": "email address exists"}, 409
         if models.User.query.filter_by(name=username).first():
             return {"message": "username exists"}, 409
-        if email is None or username is None:
-            return {"message": "POST parameter must not be empty"}, 400
         u = models.User(email=email, name=username)
         db.session.add(u)
         db.session.commit()
@@ -72,7 +70,7 @@ class LoginResource(Resource):
 
                 send_mail(user.email, "New login token", body)
             else:
-                print("Login-Token for {}: {}".format(user.name, token))
+                print("Login-Token for {}:\n{}".format(user.name, token))
             return {"message": "success"}
         else:
             abort(500)
