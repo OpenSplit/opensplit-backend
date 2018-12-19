@@ -5,4 +5,4 @@ export FLASK_APP="run.py"
 pipenv run flask db upgrade
 
 # Start Gunicorn
-pipenv run gunicorn -w 2 -b 127.0.0.1:5000 run:app
+pipenv run gunicorn -w 2 -b 0.0.0.0:5000 run:app
