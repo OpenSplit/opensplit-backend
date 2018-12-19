@@ -123,15 +123,32 @@ class Expense(db.Model):
                 "split_amongst": [u.jsonify() for u in self.split_amongst]}
 
 
-class History(db.Model):
+class Event(db.Model):
     __tablename__ = 'history'
     id = Column(Integer, primary_key=True)
     date = Column(DateTime, nullable=False, default=datetime.utcnow)
+    group_id = Column(Integer, ForeignKey('group.id'), nullable=False)
     event_type = Column(String(60), nullable=False)
-    evend_id = Column(Integer, nullable=False)
+    user_id = Column(Integer, ForeignKey('user.id'))
+    expense_id = Column(Integer, ForeignKey('user.id'))
+
+    def __init__(self, group_id, event_type, user_id=None, expense_id=None):
+        if helper.is_valid_event_type(event_type):
+            self.group_id = group_id
+            self.event_type = event_type
+            self.user_id = user_id
+            self.expense_id = expense_id
+        else:
+            raise ValueError("Invalid event type")
 
     def jsonify(self):
-        return {"id": self.id,
+        data = {"id": self.id,
                 "date": str(self.date),
-                "event_type": self.event_type,
-                "event_id": self.event_id}
+                "event_type": self.event_type}
+
+        if self.user_id:
+            data["user"] = User.query.get(self.user_id).jsonify()
+        elif self.expense_id:
+            data["expense"] = Expense.query.get(self.expense_id).jsonify()
+
+        return data
