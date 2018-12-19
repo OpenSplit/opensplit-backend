@@ -10,5 +10,6 @@ flask-httpauth = "*"
 flask-cors = "*"
 raven = {extras = ["flask"]}
 flask-migrate = "*"
+gunicorn = "*"
 
 [dev-packages]
