@@ -111,8 +111,7 @@ class GroupResource(Resource):
         db.session.commit()
 
         create_event = models.Event(group_id=group.id, event_type="CREATED")
-        join_event = models.Event(
-            group_id=group.id, event_type="USER_JOINED", user_id=g.user.id)
+        join_event = models.Event(group_id=group.id, event_type="USER_JOINED", user_id=g.user.id)
         db.session.add(create_event)
         db.session.add(join_event)
         db.session.commit()
@@ -175,9 +174,11 @@ class GroupJoinResource(Resource):
             return {"message": "No group with this token"}, 404
         else:
             group.member.append(g.user)
+            join_event = models.Event(group_id=group.id, event_type="USER_JOINED", user_id=g.user.id)
             db.session.add(group)
+            db.session.add(join_event)
             db.session.commit()
-            return "Group joined successfully"
+            return {"message": "Success"}, 200
 
 
 class GroupLeaveResource(Resource):
@@ -189,9 +190,11 @@ class GroupLeaveResource(Resource):
             return {"message": "No group with this ID or not a member"}, 404
         else:
             group.member.remove(g.user)
+            leave_event = models.Event(group_id=group.id, event_type="USER_LEFT", user_id=g.user.id)
             db.session.add(group)
+            db.session.add(leave_event)
             db.session.commit()
-            return "Group left successfully"
+            return {"message": "Success"}, 200
 
 
 expense_post_parser = reqparse.RequestParser()
