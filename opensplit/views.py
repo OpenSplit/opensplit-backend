@@ -1,5 +1,5 @@
 #! /usr/bin/env python3
-from flask_restful import Resource, reqparse, abort
+from flask_restful import Resource, reqparse, abort, request
 from opensplit import api, db, app, models
 from flask import g
 from opensplit.helper import generate_random_string, send_mail, authenticate
@@ -74,6 +74,19 @@ class LoginResource(Resource):
             return {"message": "success"}
         else:
             abort(500)
+
+class LogoutResource(Resource):
+    method_decorators = [authenticate]
+
+    def get(self):
+        """
+        Invalidate the session of the currently logged in user
+        """
+        session_key = request.headers.get("Authorization", None)
+        session = models.Session.query.filter_by(session_key=session_key).first()
+        db.session.delete(session)
+        db.session.commit()
+        return {"message": "success"}
 
 
 class SessionResource(Resource):
@@ -306,6 +319,7 @@ api.add_resource(GroupJoinResource, '/groups/join/<string:token>')
 
 api.add_resource(SessionResource, '/session/<string:login_token>')
 api.add_resource(LoginResource, '/login/<string:email>')
+api.add_resource(LogoutResource, '/logout')
 
 api.add_resource(TransactionResource,
                  '/groups/<int:group_id>/transactions',
