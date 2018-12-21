@@ -130,7 +130,7 @@ class Event(db.Model):
     group_id = Column(Integer, ForeignKey('group.id'), nullable=False)
     event_type = Column(String(60), nullable=False)
     user_id = Column(Integer, ForeignKey('user.id'))
-    expense_id = Column(Integer, ForeignKey('user.id'))
+    expense_id = Column(Integer, ForeignKey('expense.id'))
 
     def __init__(self, group_id, event_type, user_id=None, expense_id=None):
         if helper.is_valid_event_type(event_type):
