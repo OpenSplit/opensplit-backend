@@ -241,7 +241,7 @@ class TransactionResource(Resource):
                                group_id=group_id,
                                paid_by=args["paid_by"])
             for user_id in args["split_amongst"]:
-                e.split_amongst.append(models.User.query.get(user_id))
+                e.split_amongst.append(models.User.query.get(user_id), amount=3)
             db.session.add(e)
             db.session.commit()
 

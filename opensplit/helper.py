@@ -1,5 +1,6 @@
 #! /usr/bin/env python3
 import random
+from collections import defaultdict
 from datetime import datetime
 from email.message import EmailMessage
 from flask import g
@@ -8,6 +9,7 @@ from functools import wraps
 from random import shuffle
 from smtplib import SMTP_SSL, SMTP
 from uuid import uuid4 as random_uuid
+from pprint import pprint
 
 from opensplit import models, app
 
@@ -78,76 +80,97 @@ def generate_random_string(url=False, length=50):
     return ''.join(random.choice(allowed_chars) for i in range(length))
 
 
-def split_amongst(amount, user):
+def split(amount, users):   
     """
-    Take a value of "amount" and fairly split it amongst the given
-    list of "user"
+    Takes an amount of money and splits it evenly between a number of users
     """
-    foo = amount // len(user)
-    rest = amount - (foo * len(user))
+    share = amount // len(users)
+    rest = amount - (len(users) * share)
 
-    debts = []
-    # Jeder bezahlt erstmal das gleiche
-    for _ in range(len(user)):
-        debts.append(foo)
+    # rest is the amount of users that need to pay an extra cent
+    #   0 <= rest < len(users)
+    distribution = rest * [share + 1]
+    
+    # len(users) - rest is the amount of people that only pay the normal share
+    distribution.extend((len(users) - rest) * [share])
 
-    # Den Rest fair verteilen
-    for i in range(rest):
-        debts[i] = debts[i] + 1
-
-    # Shuffeln für mehr fairness
-    shuffle(debts)
-
-    # Sanity check
-    if sum(debts) != amount:
+    try:
+        assert(sum(distribution) == amount)
+    except AssertionError:
         print("WARNING: The money was not distributed correctly!")
         print(amount)
-        print(debts)
+        print(distribution)
 
-    return list(zip(user, debts))
+    return distribution
 
 
-def calculate_debts(group_id):
+def assign_debts(amount, users):
+    # distribute (possibly uneven) shares randomly among users to improve fairness
+    distribution = split(amount, users)
+    shuffle(distribution)
+    return list(zip(users, distribution))
+
+
+def simplify_debts(group_id):
     group = models.Group.query.get(group_id)
-    debts = {}
 
-    # Generate debts between users
-    for exp in group.expenses:
-        payer = models.User.query.get(exp.paid_by)
-        distribution = split_amongst(int(exp.amount), [u.name for u in exp.split_amongst])
+    # debtor owes creditor amount
+    obligations = {}
 
-        for user, amount in distribution:
-            if user == payer.name:
+    # traverse all expenses in a group
+    for expense in group.expenses:
+        # and accumulate debt shares towards creditors
+        for share in expense.participants:
+            # a creditor cannot be its own debtor
+            if share.user.id == expense.paid_by:
                 continue
-            if not debts.get(user, None):
-                debts[user] = {}
 
-            debts[user][payer.name] = amount + debts[user].get(payer.name, 0)
+            # share.debtor owes creditor share.amount
+            if not obligations.get(share.user.id, None):
+                # TODO: Replace with nifty defaultdict() shenanigans
+                obligations[share.user.id] = {}
+            obligations[share.user.id][expense.paid_by] = obligations[share.user.id].get(expense.paid_by, 0) + share.amount
 
-    # Iterate over debts-dict again to "verrrechner hin und rückschulden" between 2 user
-    for userA, userdebts in debts.items():
-        for userB in userdebts.keys():
+    # simplify mutual debt
+    for debtor, debts in obligations.items():
+        for creditor, debt in debts.items():
             try:
-                diff = min(debts[userA][userB], debts[userB][userA])
-                debts[userA][userB] -= diff
-                debts[userB][userA] -= diff
+                # the minimum amount both parties owe each other can be deducted
+                mutual_debt = min(debt, obligations[creditor][debtor])
+                obligations[debtor][creditor] -= mutual_debt
+                obligations[creditor][debtor] -= mutual_debt
             except KeyError:
+                # obligations can be unidirectional
                 continue
+                
+    # TODO: simplify transitive relationships
+    
+    return obligations
 
-    # Change format and remove empty lines
-    debts_clean = {m.name: {"owes": [], "gets": [], "total": 0} for m in group.member}
+def format_obligations(user, obligations):
+    """
+    Build the simplified list of debts and credits for a user
+    """
 
-    for userA, userdebts in debts.items():
-        for userB, value in userdebts.items():
-            if value > 0:
-                # Debts for userA, is credit for userB
-                debts_clean[userA]["total"] -= value/100
-                debts_clean[userB]["total"] += value/100
+    out = {}
+    total = 0
 
-                debts_clean[userA]["owes"].append((userB, value/100))
-                debts_clean[userB]["gets"].append((userA, value/100))
+    # user owes money to the creditors
+    out['creditors'] = obligations[user]
+    total -= sum(obligations[user].values())
 
-    return debts_clean
+    # user is owed money by the debtors
+    out['debtors'] = {}
+    for debtor, credit in obligations.items():
+        for creditor, amount in credit.items():
+            if creditor != user:
+                continue
+            out['debtors'][debtor] = amount
+            total += amount
+
+    out['total'] = total
+
+    return out
 
 
 def generate_invite_link(group_token):

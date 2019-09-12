@@ -13,3 +13,5 @@ flask-migrate = "*"
 gunicorn = "*"
 
 [dev-packages]
+pylint = "*"
+autopep8 = "*"
