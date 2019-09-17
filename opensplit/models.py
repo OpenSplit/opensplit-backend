@@ -12,7 +12,7 @@ group_assoc = Table('group_assoc', db.Model.metadata,
                     )
 
 class Share(db.Model):
-    __tablename__ = 'expense_shares'
+    __tablename__ = 'expense_assoc'
     user_id = Column(Integer, ForeignKey('user.id'), primary_key=True)
     expense_id = Column(Integer, ForeignKey('expense.id'), primary_key=True)
     amount = Column(Integer)
