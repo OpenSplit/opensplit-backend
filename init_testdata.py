@@ -6,6 +6,7 @@ from opensplit import db
 u1 = User(name="Fleaz", email="mail@fleaz.org")
 u2 = User(name="Evilet", email="mail@evilet.org")
 u3 = User(name="Hexa", email="mail@hexa.org")
+u4 = User(name="Herp Derp", email="mail@herpderp.org")
 
 db.session.add(u1)
 db.session.add(u2)

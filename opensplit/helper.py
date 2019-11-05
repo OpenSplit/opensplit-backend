@@ -134,18 +134,27 @@ def calculate_debts(group_id):
             except KeyError:
                 continue
 
-    # Change format and remove empty lines
-    debts_clean = {m.name: {"owes": [], "gets": [], "total": 0} for m in group.member}
+def format_obligations(user, obligations):
+    """
+    Build the simplified list of debts and credits for a user
+    """
 
-    for userA, userdebts in debts.items():
-        for userB, value in userdebts.items():
-            if value > 0:
-                # Debts for userA, is credit for userB
-                debts_clean[userA]["total"] -= value/100
-                debts_clean[userB]["total"] += value/100
+    out = {}
+    total = 0
+    pprint(user)
+    pprint(obligations)
+    # user owes money to the creditors
+    out['creditors'] = obligations[user]
+    total -= sum(obligations[user].values())
 
-                debts_clean[userA]["owes"].append((userB, value/100))
-                debts_clean[userB]["gets"].append((userA, value/100))
+    # user is owed money by the debtors
+    out['debtors'] = {}
+    for debtor, credit in obligations.items():
+        for creditor, amount in credit.items():
+            if creditor != user:
+                continue
+            out['debtors'][debtor] = amount
+            total += amount
 
     return debts_clean
 
